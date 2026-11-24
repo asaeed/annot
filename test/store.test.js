@@ -17,8 +17,7 @@ test('save numbers marks per page and list filters by path', () => {
   store.save(mark());
   store.save(mark({ text: 'second' }));
   store.save(mark({ url: 'http://localhost:5173/other' }));
-  const { round, marks } = store.list('http://localhost:5173/projects/42');
-  assert.equal(round, 1);
+  const { marks } = store.list('http://localhost:5173/projects/42');
   assert.deepEqual(marks.map((m) => [m.n, m.text, m.status]), [[1, 'sortable?', 'open'], [2, 'second', 'open']]);
 });
 
@@ -28,14 +27,12 @@ test('capture is written next to the mark', () => {
   assert.ok(path.isAbsolute(store.pull()[0].capture));
 });
 
-test('pull flags new marks, bumps the round once, and accepts scheme-less prefixes', () => {
+test('pull flags new marks once and accepts scheme-less prefixes', () => {
   store.save(mark());
   const first = store.pull('localhost:5173/projects');
   assert.equal(first.length, 1);
   assert.equal(first[0].new, true);
   assert.equal(store.pull()[0].new, false);
-  assert.equal(store.list(page).round, 2);
-  assert.equal(store.save(mark()).round, 2);
   assert.deepEqual(store.pull('http://elsewhere'), []);
 });
 

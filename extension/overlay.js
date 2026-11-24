@@ -17,8 +17,9 @@
     .num { position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; box-shadow: 0 0 0 2px #fff;
       font: 800 9.5px/16px system-ui, sans-serif; text-align: center; }
     .box.resolved, .num.resolved, path.resolved { opacity: .45; }
-    .num.flash { animation: flash 1.2s ease-out; }
-    @keyframes flash { 0%, 25% { transform: scale(1.8); box-shadow: 0 0 0 2px #fff, 0 0 0 6px rgba(0,0,0,.15); } }
+    .num.flash { animation: flash 1.2s ease-in-out; }
+    /* Grows from its normal size, holds, then settles back. */
+    @keyframes flash { 30%, 50% { transform: scale(1.8); box-shadow: 0 0 0 2px #fff, 0 0 0 6px rgba(0,0,0,.15); } }
     @media (prefers-reduced-motion: reduce) { .num.flash { animation: none; outline: 2px solid; outline-offset: 2px; } }
     .thread { position: absolute; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: max-content; max-width: 240px;
       font: 600 12px/1.35 system-ui, sans-serif; }
@@ -63,7 +64,6 @@
 
   let on = false;
   let marks = [];
-  let round = 1;
   let filter = 'open';
   // The mark being drawn, edited or replied to: { kind, box, strokes, color, id?, orig?, reply? }.
   let draft = null;
@@ -72,6 +72,7 @@
   let error = '';
   let hits = []; // clickable areas (boxes and threads) from the last render
   let draftThread = null; // the thread element of the mark being replied to
+  let shifts = new Map(); // mark id -> { dx, dy }: how far its element has moved since it was drawn
   let color = DEFAULT_COLOR; // for new marks
   let recent = []; // colors of saved marks, most recent first
   let pickerOpen = false;
@@ -174,12 +175,14 @@
     .catch(() => {});
   const remember = () => chrome.storage?.local.set({ color, recent }).catch(() => {});
 
+  const openNow = () => marks.filter((m) => m.status === 'open').length;
   const visible = () =>
     marks.filter(
-      (m) => m.id !== draft?.id && (filter === 'all' || (filter === 'open' ? m.status === 'open' : m.round === round)),
+      (m) => m.id !== draft?.id && (filter === 'all' || m.status === 'open'),
     );
 
   function render() {
+    shifts = new Map(marks.map((m) => [m.id, shiftOf(m)])); // before the DOM changes, to avoid a layout per mark
     layer.replaceChildren();
     hits = [];
     draftThread = null;
@@ -195,13 +198,14 @@
     renderPicker();
   }
 
-  // Draws one mark and its conversation; returns the conversation element, if any.
+  // Draws one mark and its conversation, moved along with its element; returns the conversation element, if any.
   function drawMark(svg, m, cls) {
     const c = m.color || DEFAULT_COLOR;
+    const { dx, dy } = shifts.get(m.id) || NO_SHIFT;
     if (m.kind === 'stroke') {
       for (const s of m.strokes) {
         const p = document.createElementNS(SVG, 'path');
-        p.setAttribute('d', `M${s.map((q) => q.join(' ')).join(' L')}`);
+        p.setAttribute('d', `M${s.map(([x, y]) => `${x + dx} ${y + dy}`).join(' L')}`);
         p.style.stroke = c;
         if (cls) p.classList.add(cls);
         svg.append(p);
@@ -209,16 +213,17 @@
     } else if (m.box) {
       const b = el('div', `box ${cls}`, layer);
       b.style.borderColor = c;
-      place(b, m.box.x, m.box.y, m.box.w, m.box.h);
+      place(b, m.box.x + dx, m.box.y + dy, m.box.w, m.box.h);
     }
     if (!m.box) return null;
-    if (cls !== 'draft') hits.push({ m, ...m.box });
+    const box = boxNow(m);
+    if (cls !== 'draft') hits.push({ m, ...box });
     if (m.n) {
       const num = el('div', `num ${cls}${m.id === flashId ? ' flash' : ''}`, layer);
       num.textContent = m.n;
       num.style.background = c;
       num.style.color = onColor(c);
-      place(num, m.box.x, m.box.y);
+      place(num, box.x, box.y);
     }
     const thread = m.thread || [];
     if (cls === 'draft' || !(m.text || thread.length)) return null;
@@ -229,7 +234,7 @@
     for (const msg of thread) el('div', `b ${msg.from === 'agent' ? 'agent' : 'you'}`, t).textContent = msg.text;
     if (thread.some((msg) => msg.from === 'user')) t.classList.add('wide');
     if (m.status === 'resolved') el('div', 'state', t).textContent = '✓ Resolved';
-    place(t, m.box.x, m.box.y + m.box.h + 6);
+    place(t, box.x, box.y + box.h + 6);
     hits.push({ m, x: t.offsetLeft, y: t.offsetTop, w: t.offsetWidth, h: t.offsetHeight });
     return t;
   }
@@ -253,10 +258,9 @@
     }
     const count = {
       open: marks.filter((m) => m.status === 'open').length,
-      round: marks.filter((m) => m.round === round).length,
       all: marks.length,
     };
-    for (const [key, name] of [['open', 'Open'], ['round', 'Round'], ['all', 'All']]) {
+    for (const [key, name] of [['open', 'Open'], ['all', 'All']]) {
       const b = button(name, () => {
         filter = key;
         render();
@@ -337,23 +341,30 @@
   });
   field.addEventListener('pointerup', (e) => pick(fromField(e), true));
 
-  // Scrolls to the next or previous mark the filter shows, in page order (top to bottom), and pulses its number.
+  // Scrolls to the next or previous mark the filter shows, in page order (top to bottom), then pulses its
+  // number once the scroll has stopped, so the pulse is seen.
   function jump(step) {
-    const list = visible().filter((m) => m.box).sort((a, b) => a.box.y - b.box.y || a.box.x - b.box.x);
+    const list = visible().filter((m) => m.box).map((m) => ({ m, b: boxNow(m) })).sort((a, z) => a.b.y - z.b.y || a.b.x - z.b.x);
     if (!list.length) return;
-    const at = list.findIndex((m) => m.id === lastJump);
-    const m = list[at < 0 ? (step > 0 ? 0 : list.length - 1) : (at + step + list.length) % list.length];
-    lastJump = flashId = m.id;
-    const offscreenX = m.box.x < scrollX || m.box.x + m.box.w > scrollX + innerWidth;
-    scrollTo({
-      top: Math.max(0, m.box.y - innerHeight / 3),
-      left: offscreenX ? Math.max(0, m.box.x - 40) : scrollX,
-      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-    });
-    render();
-    setTimeout(() => {
-      if (flashId === m.id) flashId = null;
-    }, 1300);
+    const at = list.findIndex(({ m }) => m.id === lastJump);
+    const { m, b } = list[at < 0 ? (step > 0 ? 0 : list.length - 1) : (at + step + list.length) % list.length];
+    lastJump = m.id;
+    const pulse = () => {
+      if (lastJump !== m.id) return; // another jump since
+      flashId = m.id;
+      render();
+      setTimeout(() => {
+        if (flashId === m.id) flashId = null;
+      }, 1300);
+    };
+    // Where the page can actually scroll to; if it's already there, no scroll (and no scrollend) happens.
+    const s = document.scrollingElement || document.documentElement;
+    const offscreenX = b.x < scrollX || b.x + b.w > scrollX + innerWidth;
+    const top = Math.min(Math.max(0, b.y - innerHeight / 3), s.scrollHeight - s.clientHeight);
+    const left = offscreenX ? Math.min(Math.max(0, b.x - 40), s.scrollWidth - s.clientWidth) : scrollX;
+    if (Math.abs(top - scrollY) < 1 && Math.abs(left - scrollX) < 1) return pulse();
+    addEventListener('scrollend', pulse, { once: true });
+    scrollTo({ top, left, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }
 
   async function clearPage() {
@@ -366,12 +377,13 @@
 
   function autosize() {
     editor.style.height = 'auto';
-    editor.style.height = `${editor.scrollHeight}px`;
+    // scrollHeight leaves out the border; without it one line overflows and sits low in the box.
+    editor.style.height = `${editor.scrollHeight + editor.offsetHeight - editor.clientHeight}px`;
     place(tools, editor.offsetLeft + 2, editor.offsetTop + editor.offsetHeight + 3);
   }
 
   function openEditor() {
-    const b = draft.box;
+    const b = boxNow(draft);
     const top = draftThread ? draftThread.offsetTop + draftThread.offsetHeight + 4 : b.y + b.h + 6;
     place(editor, b.x, top, 220);
     editor.placeholder = draft.reply ? 'Reply…' : 'Add an optional note…';
@@ -434,6 +446,31 @@
       rect: { x: Math.round(r.left + scrollX), y: Math.round(r.top + scrollY), w: Math.round(r.width), h: Math.round(r.height) },
     };
   }
+
+  // How far a mark's element has moved since the mark was drawn (the layout changed, say after an
+  // agent's edit), so the mark can move with it. The saved mark is never changed. Selectors may
+  // match another element, so unless one is an id or test id, its tag and text must match too.
+  // shortcut: follows moves, not resizes; scale the mark too if resized targets look off.
+  const NO_SHIFT = { dx: 0, dy: 0 };
+  function shiftOf(m) {
+    for (const t of m.elements || []) {
+      let e;
+      try {
+        e = document.querySelector(t.selector);
+      } catch {
+        continue;
+      }
+      if (!e || e.localName !== t.tag || (!/^(#|\[data-testid)/.test(t.selector) && textOf(e) !== t.text)) continue;
+      const r = e.getBoundingClientRect();
+      if (!r.width && !r.height) continue;
+      return { dx: Math.round(r.left + scrollX) - t.rect.x, dy: Math.round(r.top + scrollY) - t.rect.y };
+    }
+    return NO_SHIFT;
+  }
+  const boxNow = (m) => {
+    const { dx, dy } = shifts.get(m.id) || NO_SHIFT;
+    return { ...m.box, x: m.box.x + dx, y: m.box.y + dy };
+  };
 
   // Hit-testing the page (elementFromPoint, caret lookups) must see through the overlay.
   function throughOverlay(fn) {
@@ -544,7 +581,6 @@
     const res = await send({ op: 'list', url: location.href });
     if (res?.ok) {
       marks = res.marks;
-      round = res.round;
       error = '';
     } else {
       error = /not found/i.test(res?.error || '') ? 'native host missing: run ./install.sh host' : `error: ${res?.error || 'no response'}`;
@@ -618,7 +654,7 @@
     // Show it (numbered, with any follow-up) before the capture is taken, without the bar and picker.
     const n = mark.n || Math.max(0, ...marks.map((m) => +m.n || 0)) + 1;
     const thread = mark.followUp ? [...(d.orig.thread || []), { from: 'user', text: mark.followUp }] : mark.thread;
-    marks = [...marks.filter((m) => m.id !== mark.id), { ...mark, thread, id: mark.id || 'pending', n, status: 'open', round }];
+    marks = [...marks.filter((m) => m.id !== mark.id), { ...mark, thread, id: mark.id || 'pending', n, status: 'open' }];
     bar.hidden = true;
     render();
     const undoOf = (r) => [{ url: r.mark.url, id: r.mark.id, before: d.id ? d.orig : null, after: r.mark.updated }];
@@ -768,6 +804,7 @@
     on = !on;
     pickerOpen = confirming = false;
     host.style.display = on ? '' : 'none';
+    send({ op: 'mode', on, open: openNow() });
     if (on) {
       addEventListener('keydown', onKey, true);
       pathname = location.pathname;
@@ -777,14 +814,34 @@
     }
   }
 
-  // Follow single-page apps that change path without reloading. Also remove this overlay once the
-  // extension reloads: the new one runs in a fresh isolated world and can't reach this one.
+  // Coming back to the tab (say, from the terminal) picks up the agent's replies.
+  const refresh = () => {
+    if (on && !drag && document.visibilityState === 'visible') load();
+  };
+  addEventListener('focus', refresh);
+  document.addEventListener('visibilitychange', refresh);
+  // Back/forward can restore this page with the overlay on but the toolbar icon reset.
+  const reshow = (e) => e.persisted && on && send({ op: 'mode', on, open: openNow() });
+  addEventListener('pageshow', reshow);
+
+  // Every half second: remove this overlay once the extension reloads (the new one runs in a fresh
+  // isolated world and can't reach this one), redraw marks whose element moved, and follow
+  // single-page apps that change path without reloading.
+  const moved = () => marks.some((m) => {
+    const was = shifts.get(m.id) || NO_SHIFT;
+    const now = shiftOf(m);
+    return now.dx !== was.dx || now.dy !== was.dy;
+  });
   const timer = setInterval(() => {
     if (!chrome.runtime?.id) {
       clearInterval(timer);
       removeEventListener('keydown', onKey, true);
+      removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+      removeEventListener('pageshow', reshow);
       return host.remove();
     }
+    if (on && !drag && moved()) render();
     if (!on || location.pathname === pathname) return;
     pathname = location.pathname;
     undos.length = 0;
@@ -792,6 +849,6 @@
     load();
   }, 500);
 
-  window.__annot = { toggle, alive: () => !!chrome.runtime?.id };
+  window.__annot = { toggle, alive: () => !!chrome.runtime?.id, on: () => on };
   toggle();
 })();

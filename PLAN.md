@@ -10,9 +10,12 @@ In:
 - **Shift+drag** draws freehand (circle, underline, arrow). If you type right after a stroke, the text attaches to it.
 - Click a mark (or its bubbles) to edit its note; once the agent has replied, what you type is a follow-up added to the mark's thread. Delete removes the mark.
 - Each save also stores a screenshot of the viewport with the marks visible.
-- Marks are numbered per page. Corner bar (Bubbles style, kept small): filter **Open / Round / All**, ‹ › to scroll to the previous/next mark in page order, a color dot that opens a 2D picker (hue across, light to dark down) plus recently used colors, and **Clear** (delete every mark on the page, after a confirmation).
+- Marks are numbered per page. Corner bar (Bubbles style, kept small): filter **Open / All**, ‹ › to scroll to the previous/next mark in page order (its number pulses once the scroll stops), a color dot that opens a 2D picker (hue across, light to dark down) plus recently used colors, and **Clear** (delete every mark on the page, after a confirmation).
 - ⌘Z: while drawing, removes the last stroke; otherwise undoes the last save, delete or Clear on the page, one step at a time. It's refused if the mark changed since (an agent replied), so a reply is never lost. Typing in a note keeps its own undo.
-- When annotate mode is off, marks are hidden and the toolbar badge shows the open count for the page.
+- Marks follow their element: each is drawn offset by how far its first recognisable element (`elements`, by selector; tag and text must match unless the selector is an id or test id) has moved since it was saved. The saved mark isn't changed. The overlay rechecks every half second.
+- Coming back to the tab or to Chrome reloads the page's marks (annotate mode on) and updates the toolbar icon's count.
+- The toolbar icon (a pen nib in a rounded square) is a gray outline, and a solid orange tile while annotate mode is on in that tab. The page's open-mark count is drawn into its corner (white on orange when off, white on ink when on), not with Chrome's badge, which can't be made smaller. The overlay tells the background when it turns on or off; otherwise the background asks it. Chrome resets per-tab icons when a new document loads, not on pushState or #hash.
+- When annotate mode is off, marks are hidden.
 - Agents: `annot pull` and `annot resolve <id> "one-line reply"`.
 
 Out (for now): sharing, agents placing marks, any chat UI, the proxy, hooks that push feedback into a session, browsers other than Chrome, mapping marks to source files.
@@ -22,7 +25,7 @@ Out (for now): sharing, agents placing marks, any chat UI, the proxy, hooks that
 ```
 page ── overlay.js (content script, Shadow DOM, SVG)
           │ chrome.runtime messages
-        background.js (service worker: toggle, screenshot, badge)
+        background.js (service worker: toggle, screenshot, toolbar icon)
           │ chrome.runtime.sendNativeMessage
         bin/annot-host  →  node bin/annot.js   (native messaging host)
           │ fs
@@ -45,7 +48,7 @@ annot/
   bin/
     annot.js          CLI + native host (native mode when argv[2] starts with chrome-extension://)
   lib/
-    store.js          read/write marks, rounds
+    store.js          read/write marks, pull state
   test/
     store.test.js     node:test
     shapes.test.js    node:test, including a real hand-drawn arrow (fixtures/arrow.json)
@@ -74,7 +77,6 @@ One file per mark: `~/.annotations/<host>/<id>.json`, with `<id>.png` alongside.
     { "from": "agent", "text": "Made Last call sortable", "at": "2026-11-23T21:20:02.000Z" },
     { "from": "user", "text": "default to newest first", "at": "2026-11-23T21:31:40.000Z" }
   ],
-  "round": 3,
   "created": "2026-11-23T21:04:11.000Z",
   "updated": "2026-11-23T21:04:11.000Z",
   "viewport": { "w": 1512, "h": 857, "dpr": 2, "scrollX": 0, "scrollY": 640 },
@@ -98,15 +100,14 @@ One file per mark: `~/.annotations/<host>/<id>.json`, with `<id>.png` alongside.
 - Deleting a mark, or saving a new capture over an old one, moves the old PNG to `<host>/.trash/` so undo can bring it back. The extension keeps the undo history in memory for the page; the trash is emptied when Chrome starts (the `clear-drafts` op).
 - `color` is the mark's color (hex), chosen in the picker; the extension keeps the current color and recently used colors in `chrome.storage.local`.
 
-## Rounds and pull
+## Pull
 
-`~/.annotations/<host>/.state.json` holds `{ round, lastPull }` for each host.
+`~/.annotations/<host>/.state.json` holds `{ lastPull }` for each host. There are no rounds: marking up and pulling is one continuous process.
 
-- New marks take the host's current `round`.
-- `annot pull [url-prefix]` prints the open marks as JSON, adding `"new": true` to any whose `updated` is later than `lastPull`, plus `file` (the mark's JSON path). Raw `strokes` are left out of the output. It then increments `round` and sets `lastPull` for each host it covered. You can pull at any time. If the store isn't writable (a sandboxed agent), the pull still prints but isn't recorded.
+- `annot pull [url-prefix]` prints the open marks as JSON, adding `"new": true` to any whose `updated` is later than `lastPull`, plus `file` (the mark's JSON path). Raw `strokes` are left out of the output. It then sets `lastPull` for each host it covered. You can pull at any time. If the store isn't writable (a sandboxed agent), the pull still prints but isn't recorded.
 - `annot pull --all` also includes resolved marks.
 - `annot resolve <id> "<reply>"` sets `status: "resolved"` and `updated`, and adds the reply to `thread`.
-- The UI filter "Round" shows marks whose `round` equals the host's current round. A follow-up (or editing the text of a resolved mark that has no replies) reopens it.
+- A follow-up (or editing the text of a resolved mark that has no replies) reopens it.
 
 ## Native messaging
 
@@ -114,12 +115,12 @@ Requests go from the extension to the host with `chrome.runtime.sendNativeMessag
 
 | op | payload | returns |
 |---|---|---|
-| `list` | `{ url }` | marks for that host and path, plus `round` |
+| `list` | `{ url }` | marks for that host and path |
 | `save` | mark (new or edited, optionally with `followUp`) + `capture` as a base64 PNG | saved mark |
 | `delete` | `{ url, id }` | `{ ok }` |
 | `clear` | `{ url }` | `{ cleared }`: deletes every mark on that page |
 | `restore` | `{ changes: [{ url, id, before, after }] }` | undo: writes each mark back as `before` (or removes it if null), only if its `updated` still equals `after` (null: still deleted); all or nothing |
-| `hosts` | none | hosts that have marks; the background script uses it to skip the native call when updating the badge on ordinary pages |
+| `hosts` | none | hosts that have marks; the background script uses it to skip the native call when updating the toolbar icon's count on ordinary pages |
 
 Responses stay under the 1 MB limit for messages from the host because PNGs are never sent back to the extension.
 
@@ -153,4 +154,4 @@ Each step ends with something I can check.
 - Verified in the smoke test: the manifest `key` gives a stable extension ID; `captureVisibleTab` works with `<all_urls>`; native messaging works end to end.
 - Native host manifests must include `description`, or Chrome reports "host not found". Chromium also reads hosts from `<user-data-dir>/NativeMessagingHosts`, which the smoke test uses to keep a temp store.
 - Not yet verified: capture and injection on file:// pages (needs "Allow access to file URLs"), and pages with strict CSP. The overlay uses CSSOM (`adoptedStyleSheets`, `style.cssText`), which CSP doesn't block.
-- Known limits: marks over sticky headers, inside scrolling sub-panels, iframes, shadow DOM or canvas apps will drift or misplace. The element data still tells the agent what was meant. The toolbar badge updates on page load and when the overlay opens, not the moment an agent resolves a mark.
+- Known limits: marks follow moves of their element, not resizes. Marks over sticky headers, inside scrolling sub-panels, iframes, shadow DOM or canvas apps, or whose element is gone, stay where they were drawn. The element data still tells the agent what was meant. The toolbar icon's count updates on page load, when the overlay opens, and when you switch to the tab or window, not the moment an agent resolves a mark.

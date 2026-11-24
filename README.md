@@ -1,4 +1,9 @@
-# annot
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo-dark.png">
+    <img src="docs/logo-light.png" alt="annot" width="168">
+  </picture>
+</h1>
 
 The simplest browser annotation tool for human–machine communication.
 
@@ -61,7 +66,9 @@ Drawings are recognised when you save, so the agent gets the right target:
 
 The longest stroke of an arrow is its shaft and the short strokes mark its tip, so the order you draw them in doesn't matter.
 
-The bar filters **Open**, **Round** (marks since your agent last pulled) and **All**. Outside annotate mode, marks are hidden and the toolbar badge shows how many are open on the page.
+The bar filters **Open** and **All**. The toolbar icon turns into a solid orange tile while annotate mode is on, and the number on its corner is how many marks are open on the page. Outside annotate mode, marks are hidden. Coming back to the tab (say, from your terminal) picks up the agent's replies; no need to reopen anything.
+
+If the page layout changes after you mark it, for example because the agent edited the page, each mark moves with the element it was drawn on.
 
 ## With your agent
 
@@ -103,7 +110,7 @@ Codex in `workspace-write` mode can read marks but not write them. Add `~/.annot
 ```
 page ── overlay.js (content script; marks drawn in a shadow DOM)
           │
-        background.js (toggle, screenshot, badge)
+        background.js (toggle, screenshot, toolbar icon)
           │ native messaging
         bin/annot.js ── ~/.annotations/<host>/<id>.json + <id>.png
                                   │
@@ -115,7 +122,7 @@ Each mark is one JSON file, so the extension and the CLI never write the same fi
 ## Limits
 
 - Chrome only.
-- Marks are placed at page coordinates. Inside scrolling panels, iframes or canvas apps, or after the layout changes, they can drift. The element data still tells the agent what you meant.
+- Marks follow their element when it moves, but not when it's resized, removed or no longer recognisable. Then they stay where you drew them, and so do marks inside scrolling panels, iframes and canvas apps. The element data still tells the agent what you meant.
 - Marks are stored per host and path, so routes that differ only by `#hash` share marks.
 
 ## Develop

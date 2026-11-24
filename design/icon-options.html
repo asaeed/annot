@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>annot logo and icon ideas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,600&family=Inter:wght@500;700;800&family=JetBrains+Mono:wght@700&family=Nunito:wght@800;900&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #ff6a3d;
+    --off: #6b6f76;
+    --badge: #ff6a3d;
+    --ink: #1d1d1f;
+    --muted: #6e6e73;
+    --line: #e5e5ea;
+    --page: #f5f5f7;
+    --card: #fff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.45 Inter, system-ui, sans-serif; }
+  header.top { max-width: 1180px; margin: 0 auto; padding: 32px 20px 8px; }
+  h1 { font: 800 26px/1.2 Inter, sans-serif; margin: 0 0 6px; letter-spacing: -.01em; }
+  .lede { margin: 0; color: var(--muted); max-width: 760px; }
+  .controls { display: flex; gap: 8px; align-items: center; margin: 14px 0 0; color: var(--muted); font-size: 13px; }
+  .controls button { font: 600 12px Inter, sans-serif; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; }
+  .controls button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .controls i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; margin-right: 5px; }
+  main { max-width: 1180px; margin: 0 auto; padding: 16px 20px 60px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(560px, 100%), 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 16px 14px; }
+  .card h2 { font: 700 15px/1.2 Inter, sans-serif; margin: 0; display: flex; gap: 8px; align-items: baseline; }
+  .card h2 .n { font: 700 11px Inter, sans-serif; color: var(--muted); min-width: 18px; }
+  .card p { margin: 3px 0 0 26px; color: var(--muted); font-size: 12.5px; }
+  .lockup { display: flex; align-items: center; gap: 10px; height: 84px; margin: 10px 0 12px; padding: 0 16px; border-radius: 12px; background: #fafafa; }
+  .lockup .word { font-size: 38px; line-height: 1; letter-spacing: -.01em; color: var(--ink); }
+  .lockup.dark { background: #1d1d1f; }
+  .lockup.dark .word { color: #f5f5f7; }
+  .lockups { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .lockups .lockup.dark { width: 84px; justify-content: center; padding: 0; }
+  .bars { display: flex; flex-wrap: wrap; gap: 10px; }
+  .bars > div { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .bar { display: inline-flex; gap: 2px; padding: 4px 6px; border-radius: 10px; }
+  .bar.light { background: #fff; box-shadow: inset 0 0 0 1px var(--line); }
+  .bar.dark { background: #3c3c3c; }
+  .bar.x2 { zoom: 2; }
+  .slot { position: relative; width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; }
+  .slot svg { display: block; overflow: visible; }
+  .ico { position: relative; width: 16px; height: 16px; }
+  .badge { position: absolute; right: -6px; bottom: -4px; min-width: 11px; height: 10px; padding: 0 3px; border-radius: 5px; background: var(--badge); color: #fff; font: 700 8px/10px Inter, system-ui, sans-serif; text-align: center; }
+  .legend { display: grid; grid-template-columns: repeat(4, 56px); margin: 0 0 0 12px; font-size: 10.5px; color: var(--muted); text-align: center; }
+  .label { font-size: 10.5px; color: var(--muted); }
+  footer { max-width: 1180px; margin: 0 auto; padding: 0 20px 40px; color: var(--muted); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>annot: logo and icon ideas</h1>
+  <p class="lede">Twenty directions, plus #21, the one chosen. Each card shows the logo, then the toolbar icon at its real size (16px) and at 2×, in Chrome's light and dark toolbars. Each toolbar has four states: off, off with the open-mark badge, on (annotate mode active), and on with the badge. Brand <b style="color:var(--brand)">#ff6a3d</b>; inactive gray #6b6f76.</p>
+  <div class="controls">Badge color:
+    <button data-badge="#ff6a3d" aria-pressed="true"><i style="background:#ff6a3d"></i>Brand</button>
+    <button data-badge="#1d1d1f" aria-pressed="false"><i style="background:#1d1d1f"></i>Ink</button>
+    <button data-badge="#5f6368" aria-pressed="false"><i style="background:#5f6368"></i>Gray</button>
+  </div>
+</header>
+<main id="cards"></main>
+<footer>Chosen: #21 Nib, negative, with the Fraunces wordmark. It's the extension's icon and the README logo; while annotate mode is on, the badge is Ink so it shows on the orange tile.</footer>
+<script>
+  let uid = 0;
+  const OFF2 = '#9aa0a6';
+  // Each glyph is drawn on a 16×16 grid in currentColor; `on` is true for the active state.
+  const C = [
+    { name: 'Mark', idea: 'A rounded box with its number dot: exactly what a mark looks like on the page.', font: "800 38px Nunito",
+      svg: (id) => `<mask id="m${id}"><rect width="16" height="16" fill="#fff"/><circle cx="4" cy="4" r="4.7"/></mask>
+        <rect x="4" y="4" width="10.5" height="10.5" rx="3" fill="none" stroke="currentColor" stroke-width="2.2" mask="url(#m${id})"/>
+        <circle cx="4" cy="4" r="3.4" fill="currentColor"/>` },
+    { name: 'Bubble', idea: 'A speech bubble with a note line: annotation as conversation.', font: "800 38px Nunito",
+      svg: () => `<path d="M4 2h8a2.5 2.5 0 0 1 2.5 2.5v4.25A2.5 2.5 0 0 1 12 11.25H7.6L4.2 14.2v-2.95A2.5 2.5 0 0 1 1.5 8.75V4.5A2.5 2.5 0 0 1 4 2z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M5 6.6h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>` },
+    { name: 'Corners', idea: 'Selection corners around a point: "this, right here."', font: "700 38px Inter",
+      svg: () => `<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 5.5V3.5A1.5 1.5 0 0 1 3.5 2h2M10.5 2h2A1.5 1.5 0 0 1 14 3.5v2M14 10.5v2a1.5 1.5 0 0 1-1.5 1.5h-2M5.5 14h-2A1.5 1.5 0 0 1 2 12.5v-2"/></g>
+        <circle cx="8" cy="8" r="2.2" fill="currentColor"/>` },
+    { name: 'Lasso', idea: 'A quick hand-drawn loop, the circle you draw around a thing.', font: "700 44px Caveat",
+      svg: () => `<path d="M13.2 6.2C12.4 2.8 6.6 1.6 3.6 3.6 1.2 5.3 1.6 9.9 4.8 11.7c3.2 1.8 8.2 1 9.3-2 .8-2.3-.6-4.8-3.6-6.1" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>` },
+    { name: 'Arrow', idea: 'A hand-drawn arrow: a long shaft and two short strokes, like the ones annot reads.', font: "700 44px Caveat",
+      svg: () => `<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2.6 13.4C5.4 11.8 9.6 7.6 12.9 3.1"/><path d="M8.3 3.3l4.6-.2-.3 4.6"/></g>` },
+    { name: 'Underlined a', idea: 'A lowercase a with a marker swoosh under it: the underline mark as a letterform.', font: "700 38px Fraunces",
+      svg: () => `<text x="8" y="10.6" text-anchor="middle" font-family="Fraunces" font-weight="700" font-size="13" fill="currentColor">a</text>
+        <path d="M2.4 14c3.6-1.4 7.6-1.6 11.2-.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>` },
+    { name: 'Tile', idea: 'An app-style tile with the a knocked out. Outline when off, solid when on.', font: "900 38px Nunito",
+      svg: (id, on) => on
+        ? `<mask id="m${id}"><rect width="16" height="16" fill="#fff"/><text x="8" y="11.6" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="12">a</text></mask>
+           <rect x="1" y="1" width="14" height="14" rx="4" fill="currentColor" mask="url(#m${id})"/>`
+        : `<rect x="1.9" y="1.9" width="12.2" height="12.2" rx="3.4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+           <text x="8" y="11.4" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="11" fill="currentColor">a</text>` },
+    { name: 'Pin', idea: 'A drop pin carrying a mark number: placing a note on the page.', font: "800 38px Inter",
+      svg: (id) => `<mask id="m${id}"><rect width="16" height="16" fill="#fff"/><text x="8" y="9.4" text-anchor="middle" font-family="Inter" font-weight="800" font-size="7.5">1</text></mask>
+        <path d="M8 15.2S2.8 10.6 2.8 6.6a5.2 5.2 0 0 1 10.4 0c0 4-5.2 8.6-5.2 8.6z" fill="currentColor" mask="url(#m${id})"/>` },
+    { name: 'Number', idea: "Just the mark's number badge. Simple, and a bit generic.", font: "800 38px Nunito",
+      svg: (id) => `<mask id="m${id}"><rect width="16" height="16" fill="#fff"/><text x="8" y="11.3" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="9.5">1</text></mask>
+        <circle cx="8" cy="8" r="6.8" fill="currentColor" mask="url(#m${id})"/>` },
+    { name: 'Drag box', idea: 'A dashed selection box with the cursor that drew it: drag, then type.', font: "700 38px Inter",
+      svg: (id) => `<mask id="m${id}"><rect width="16" height="16" fill="#fff"/><path d="M8.6 8.6 15 11l-2.7 1.2L11 15z" stroke="#000" stroke-width="2.6" stroke-linejoin="round"/></mask>
+        <rect x="1.6" y="1.6" width="10" height="10" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2.6 2" mask="url(#m${id})"/>
+        <path d="M8.6 8.6 15 11l-2.7 1.2L11 15z" fill="currentColor" stroke="currentColor" stroke-width=".8" stroke-linejoin="round"/>` },
+    { name: 'Highlighter', idea: 'A marker tip over a highlighted line: marking up, literally.', font: "italic 600 40px Fraunces",
+      svg: () => `<path d="M6.4 10.4 12.9 3.9a1.5 1.5 0 0 0 0-2.1l-.1-.1a1.5 1.5 0 0 0-2.1 0L4.2 8.2z" fill="currentColor"/>
+        <path d="M4.2 8.2 2.6 11.7l3.8-1.3z" fill="currentColor"/>
+        <path d="M1.6 14.3h12.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/>` },
+    { name: 'Two bubbles', idea: 'You in orange and the agent in gray, like the threads under each mark.', font: "800 38px Nunito",
+      svg: (id, on) => `<rect x="1" y="1.6" width="9.4" height="6.6" rx="3.3" fill="currentColor"/>
+        <mask id="m${id}"><rect width="16" height="16" fill="#fff"/><rect x="0" y=".6" width="11.4" height="8.6" rx="4.3"/></mask>
+        <rect x="5.6" y="7.8" width="9.4" height="6.6" rx="3.3" fill="${on ? OFF2 : 'currentColor'}" opacity="${on ? 1 : .55}" mask="url(#m${id})"/>` },
+    { name: 'Prompt', idea: 'A speech bubble holding a terminal prompt: you talking to an agent.', font: "700 34px 'JetBrains Mono'",
+      svg: () => `<path d="M4 2h8a2.5 2.5 0 0 1 2.5 2.5v4.25A2.5 2.5 0 0 1 12 11.25H7.6L4.2 14.2v-2.95A2.5 2.5 0 0 1 1.5 8.75V4.5A2.5 2.5 0 0 1 4 2z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M4.6 4.9l1.9 1.75-1.9 1.75M8.2 8.4h3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>` },
+    { name: 'Brackets', idea: 'Square brackets around a dot: an annotation in code-ish shorthand.', font: "700 34px 'JetBrains Mono'",
+      svg: () => `<path d="M5.2 2.2H3v11.6h2.2M10.8 2.2H13v11.6h-2.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="8" cy="8" r="2.1" fill="currentColor"/>` },
+    { name: 'Sticky', idea: 'A sticky note with a folded corner: a note left on the page.', font: "700 44px Caveat",
+      svg: (id, on) => on
+        ? `<path d="M2 3.2A1.2 1.2 0 0 1 3.2 2h9.6A1.2 1.2 0 0 1 14 3.2V9.6L9.6 14H3.2A1.2 1.2 0 0 1 2 12.8z" fill="currentColor"/>
+           <path d="M14 9.6h-3.2a1.2 1.2 0 0 0-1.2 1.2V14" fill="none" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>
+           <path d="M4.8 5.6h6.4M4.8 8.2h3.6" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>`
+        : `<path d="M2.8 3.6a.8.8 0 0 1 .8-.8h8.8a.8.8 0 0 1 .8.8V9.4l-3.8 3.8H3.6a.8.8 0 0 1-.8-.8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+           <path d="M13.2 9.4h-3a.8.8 0 0 0-.8.8v3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+           <path d="M5.4 6h5.2M5.4 8.4h2.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>` },
+    { name: 'Crosshair', idea: 'Targeting an element precisely: annot finds what you pointed at.', font: "700 38px 'Space Grotesk'",
+      svg: () => `<circle cx="8" cy="8" r="4.6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M8 .8v3.2M8 12v3.2M.8 8H4M12 8h3.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="8" cy="8" r="1.4" fill="currentColor"/>` },
+    { name: 'Circled dot', idea: 'A rough loop around a dot: "look at this one."', font: "700 38px 'Space Grotesk'",
+      svg: () => `<path d="M12.8 5C11.3 2.6 6.6 1.7 3.9 3.6 1.4 5.4 1.6 9.8 4.6 11.7c3 1.9 7.9 1.2 9.2-1.6 1-2-.1-4.3-2.5-5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="7.9" cy="7.6" r="2" fill="currentColor"/>` },
+    { name: 'Nib', idea: 'A pen nib: editorial red-pen review, for pages.', font: "700 38px Fraunces",
+      svg: () => `<path d="M8 1.6l4.8 5-2.7 7H5.9l-2.7-7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M8 2.4v4.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="8" cy="8.6" r="1.4" fill="currentColor"/>` },
+    { name: 'Quote', idea: 'An opening quote mark in a soft square: what you said about the page.', font: "italic 600 40px Fraunces",
+      svg: (id, on) => on
+        ? `<mask id="m${id}"><rect width="16" height="16" fill="#fff"/><text x="8" y="16" text-anchor="middle" font-family="Fraunces" font-weight="700" font-size="17">“</text></mask>
+           <rect x="1" y="1" width="14" height="14" rx="4.5" fill="currentColor" mask="url(#m${id})"/>`
+        : `<rect x="1.9" y="1.9" width="12.2" height="12.2" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+           <text x="8" y="15.4" text-anchor="middle" font-family="Fraunces" font-weight="700" font-size="15" fill="currentColor">“</text>` },
+    { name: 'Hand-off', idea: 'A note leaving the page for your terminal: human to agent.', font: "800 38px Inter",
+      svg: () => `<path d="M9.8 4V3.3a1.5 1.5 0 0 0-1.5-1.5H3.5A1.5 1.5 0 0 0 2 3.3v9.4a1.5 1.5 0 0 0 1.5 1.5h4.8a1.5 1.5 0 0 0 1.5-1.5V12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M6.2 8h8.2M11.6 5.2 14.4 8l-2.8 2.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>` },
+    { name: 'Nib, negative', idea: 'The nib (#18) cut out of a solid tile when on; a solid nib in an outlined tile when off.', font: "700 38px Fraunces",
+      svg: (id, on) => nibNegative(id, on) },
+  ];
+
+  // #21: the nib silhouette with its slit and ink hole, centered in a tile. Also rendered to the extension's icon PNGs.
+  function nibNegative(id, on) {
+    const nib = (scale) => `transform="translate(8 8) scale(${scale}) translate(-8 -7.6)"`;
+    const NIB = 'M8 1.6l4.8 5-2.7 7H5.9l-2.7-7z';
+    const slit = (fill) => `<path d="M8 2.4v5.2" stroke="${fill}" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="8.6" r="1.6" fill="${fill}"/>`;
+    return on
+      ? `<mask id="m${id}"><rect width="16" height="16" fill="#fff"/><g ${nib(.88)}><path d="${NIB}" fill="#000" stroke="#000" stroke-width="1" stroke-linejoin="round"/>${slit('#fff')}</g></mask>
+         <rect width="16" height="16" rx="4.2" fill="currentColor" mask="url(#m${id})"/>`
+      : `<mask id="m${id}"><rect width="16" height="16" fill="#fff"/><g ${nib(.74)}>${slit('#000')}</g></mask>
+         <rect x=".9" y=".9" width="14.2" height="14.2" rx="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/>
+         <g mask="url(#m${id})"><path ${nib(.74)} d="${NIB}" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></g>`;
+  }
+
+  const icon = (c, on, size) => `<svg viewBox="0 0 16 16" width="${size}" height="${size}" style="color:${on ? 'var(--brand)' : 'var(--off)'}" aria-hidden="true">${c.svg(++uid, on)}</svg>`;
+  const slot = (c, on, badge) => `<span class="slot"><span class="ico">${icon(c, on, 16)}${badge ? '<span class="badge">3</span>' : ''}</span></span>`;
+  const LEGEND = '<div class="legend"><span>off</span><span>off · badge</span><span>on</span><span>on · badge</span></div>';
+  const bar = (c, theme, x2) => `<span class="bar ${theme}${x2 ? ' x2' : ''}">${[[0, 0], [0, 1], [1, 0], [1, 1]].map(([on, b]) => slot(c, on, b)).join('')}</span>`;
+
+  document.getElementById('cards').innerHTML = C.map((c, i) => `
+    <section class="card" id="idea-${i + 1}">
+      <h2><span class="n">${i + 1}</span>${c.name}</h2>
+      <p>${c.idea}</p>
+      <div class="lockups">
+        <div class="lockup">${icon(c, true, 44)}<span class="word" style="font:${c.font}">annot</span></div>
+        <div class="lockup dark">${icon(c, true, 44)}</div>
+      </div>
+      <div class="bars">
+        <div>${bar(c, 'light')}${bar(c, 'light', true)}${LEGEND}</div>
+        <div>${bar(c, 'dark')}${bar(c, 'dark', true)}${LEGEND}</div>
+      </div>
+    </section>`).join('');
+
+  for (const b of document.querySelectorAll('[data-badge]')) b.onclick = () => {
+    document.documentElement.style.setProperty('--badge', b.dataset.badge);
+    for (const o of document.querySelectorAll('[data-badge]')) o.setAttribute('aria-pressed', String(o === b));
+  };
+</script>
+</body>
+</html>
