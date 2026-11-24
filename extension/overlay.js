@@ -43,6 +43,7 @@
     .bar button.danger { background: #e5484d; color: #fff; }
     .bar button:disabled { opacity: .4; cursor: default; }
     .bar b { margin-left: 3px; font-weight: 800; }
+    .bar .logo { position: static; display: block; width: 18px; height: 18px; margin: 0 4px 0 1px; }
     .sep { width: 1px; height: 12px; margin: 0 3px; background: #eee; }
     .dot { display: block; width: 11px; height: 11px; border-radius: 50%; background: var(--cur); box-shadow: 0 0 0 1.5px #fff, 0 0 0 2.5px #ddd; }
     .bar button:focus-visible, .tools button:focus-visible, .sw:focus-visible { outline: 2px solid var(--cur); outline-offset: 1px; }
@@ -239,8 +240,30 @@
     return t;
   }
 
+  // The annot logo, as on the toolbar icon: a white nib with a fine slit on the brand tile. Paint goes in
+  // style because the sheet's path rule would override attributes.
+  const LOGO = (() => {
+    const add = (parent, tag, attrs, style = '') => {
+      const e = document.createElementNS(SVG, tag);
+      for (const k in attrs) e.setAttribute(k, attrs[k]);
+      e.style.cssText = style;
+      parent.append(e);
+      return e;
+    };
+    const s = document.createElementNS(SVG, 'svg');
+    s.setAttribute('viewBox', '0 0 16 16');
+    s.setAttribute('class', 'logo');
+    s.setAttribute('aria-hidden', 'true');
+    add(s, 'rect', { width: 16, height: 16, rx: 4.2 }, `fill:${DEFAULT_COLOR}`);
+    const g = add(s, 'g', { transform: 'translate(8 8) scale(.88) translate(-8 -7.6)' });
+    add(g, 'path', { d: 'M8 1.6l4.8 5-2.7 7H5.9l-2.7-7z' }, 'fill:#fff;stroke:#fff;stroke-width:1;stroke-linejoin:round');
+    add(g, 'path', { d: 'M8 2.4v6.2' }, `stroke:${DEFAULT_COLOR};stroke-width:1;stroke-linecap:round`);
+    add(g, 'circle', { cx: 8, cy: 8.6, r: 1.6 }, `fill:${DEFAULT_COLOR}`);
+    return s;
+  })();
+
   function renderBar() {
-    bar.replaceChildren();
+    bar.replaceChildren(LOGO);
     const button = (label, onclick, cls = '') => {
       const b = el('button', cls, bar);
       b.textContent = label;

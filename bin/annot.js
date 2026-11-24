@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// annot CLI for agents, and the Chrome native messaging host (Chrome passes the
+// annot CLI for agents, and the browser's native messaging host (the browser passes the
 // extension origin as the first argument).
 import * as store from '../lib/store.js';
 
-const HELP = `annot: read and resolve marks placed with the annot Chrome extension
+const HELP = `annot: read and resolve marks placed with the annot browser extension
 
   annot pull [url-prefix] [--all]   open marks and drafts as JSON (--all includes resolved);
                                     marks added or edited since the last pull have "new": true

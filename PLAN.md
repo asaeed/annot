@@ -1,6 +1,6 @@
 # annot: plan
 
-A Chrome extension for marking up any page (agent-generated HTML plans, localhost apps, hosted apps behind SSO), plus a CLI that Claude and Codex use to read the marks and reply. It's a channel between me and my agents, built to be fast and stay out of the way.
+A browser extension (Chrome, Brave, Edge) for marking up any page (agent-generated HTML plans, localhost apps, hosted apps behind SSO), plus a CLI that Claude and Codex use to read the marks and reply. It's a channel between me and my agents, built to be fast and stay out of the way.
 
 ## v1 scope
 
@@ -10,15 +10,15 @@ In:
 - **Shift+drag** draws freehand (circle, underline, arrow). If you type right after a stroke, the text attaches to it.
 - Click a mark (or its bubbles) to edit its note; once the agent has replied, what you type is a follow-up added to the mark's thread. Delete removes the mark.
 - Each save also stores a screenshot of the viewport with the marks visible.
-- Marks are numbered per page. Corner bar (Bubbles style, kept small): filter **Open / All**, ‹ › to scroll to the previous/next mark in page order (its number pulses once the scroll stops), a color dot that opens a 2D picker (hue across, light to dark down) plus recently used colors, and **Clear** (delete every mark on the page, after a confirmation).
+- Marks are numbered per page. Corner bar (Bubbles style, kept small): the annot logo at its left end, filter **Open / All**, ‹ › to scroll to the previous/next mark in page order (its number pulses once the scroll stops), a color dot that opens a 2D picker (hue across, light to dark down) plus recently used colors, and **Clear** (delete every mark on the page, after a confirmation).
 - ⌘Z: while drawing, removes the last stroke; otherwise undoes the last save, delete or Clear on the page, one step at a time. It's refused if the mark changed since (an agent replied), so a reply is never lost. Typing in a note keeps its own undo.
 - Marks follow their element: each is drawn offset by how far its first recognisable element (`elements`, by selector; tag and text must match unless the selector is an id or test id) has moved since it was saved. The saved mark isn't changed. The overlay rechecks every half second.
 - Coming back to the tab or to Chrome reloads the page's marks (annotate mode on) and updates the toolbar icon's count.
-- The toolbar icon (a pen nib in a rounded square) is a gray outline, and a solid orange tile while annotate mode is on in that tab. The page's open-mark count is drawn into its corner (white on orange when off, white on ink when on), not with Chrome's badge, which can't be made smaller. The overlay tells the background when it turns on or off; otherwise the background asks it. Chrome resets per-tab icons when a new document loads, not on pushState or #hash.
+- The toolbar icon (a pen nib in a rounded square) is a gray outline, and an orange tile with a white nib while annotate mode is on in that tab; the same tile is the logo, at the left end of the bar and in the README. The page's open-mark count is drawn into its corner (white on orange when off, white on ink when on), not with Chrome's badge, which can't be made smaller. The overlay tells the background when it turns on or off; otherwise the background asks it. Chrome resets per-tab icons when a new document loads, not on pushState or #hash.
 - When annotate mode is off, marks are hidden.
 - Agents: `annot pull` and `annot resolve <id> "one-line reply"`.
 
-Out (for now): sharing, agents placing marks, any chat UI, the proxy, hooks that push feedback into a session, browsers other than Chrome, mapping marks to source files.
+Out (for now): sharing, agents placing marks, any chat UI, the proxy, hooks that push feedback into a session, Firefox and Safari, mapping marks to source files.
 
 ## Architecture
 
@@ -34,7 +34,7 @@ page ── overlay.js (content script, Shadow DOM, SVG)
         annot pull / annot resolve  (same script, run as a CLI by agents)
 ```
 
-Stack: plain JS with no build, and Node 24 with no dependencies. The repo folder is loaded into Chrome as an unpacked extension.
+Stack: plain JS with no build, and Node 24 with no dependencies. The repo folder is loaded into the browser as an unpacked extension.
 
 ## Repo layout
 
@@ -97,7 +97,7 @@ One file per mark: `~/.annotations/<host>/<id>.json`, with `<id>.png` alongside.
 - `elements` for an area: of all elements whose rectangles overlap it, keep the innermost ones (drop any element that has a descendant also in the set), drop ones more than 4× the area's size unless nothing else is left, and drop duplicates. Rank by overlap and keep 5. Each element's text is trimmed to 200 characters. Selector: a unique `#id`, else `[data-testid]`, else tag plus up to two classes plus `:nth-of-type`, walking up at most 4 levels. Selectors may not be unique; the text and rect tell them apart.
 - `n` is the next number for that page. `id` is the timestamp in base36 plus random characters.
 - `text` is the original note and isn't rewritten once the agent has replied. `thread` holds everything after it, oldest first: agent replies (from `annot resolve`) and the user's follow-ups (a save with `followUp`, which also reopens the mark). Marks saved before threads existed had a single `reply`; they're read as a one-entry thread.
-- Deleting a mark, or saving a new capture over an old one, moves the old PNG to `<host>/.trash/` so undo can bring it back. The extension keeps the undo history in memory for the page; the trash is emptied when Chrome starts (the `clear-drafts` op).
+- Deleting a mark, or saving a new capture over an old one, moves the old PNG to `<host>/.trash/` so undo can bring it back. The extension keeps the undo history in memory for the page; the trash is emptied when the browser starts (the `clear-drafts` op).
 - `color` is the mark's color (hex), chosen in the picker; the extension keeps the current color and recently used colors in `chrome.storage.local`.
 
 ## Pull
@@ -128,12 +128,12 @@ Responses stay under the 1 MB limit for messages from the host because PNGs are 
 
 `./install.sh host`:
 1. Writes `bin/annot-host`, which runs `exec ~/.local/share/fnm/aliases/default/bin/node <repo>/bin/annot.js "$@"`. Chrome starts it without your shell's PATH, and the `node` on PATH is a temporary per-shell path from fnm, so the absolute path is needed.
-2. Writes `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/com.asaeed.annot.json`, with `allowed_origins` set to the fixed extension ID.
+2. Writes `com.asaeed.annot.json`, with `allowed_origins` set to the fixed extension ID, into `NativeMessagingHosts/` under Chrome's folder (`~/Library/Application Support/Google/Chrome` or `~/.config/google-chrome`), and under Brave's, Edge's and Chromium's when they're installed. Verified in Brave and Edge 158; Brave on macOS also reads Chrome's folder.
 3. Symlinks `~/.local/bin/annot` → `bin/annot.js`.
 
 `./install.sh <claude|codex>` copies `skill.md` to `~/.claude/skills/annot/SKILL.md` or `~/.codex/skills/annot/SKILL.md` (the author's extra profiles `claude-work` and `codex-work` work too). The skill is triggered by phrases like "check my annotations": run `annot pull`, read each mark's text, elements and capture, act on it, then `annot resolve <id> "<reply>"`.
 
-Once, by hand: open chrome://extensions, turn on Developer mode, Load unpacked → `extension/`, and switch on "Allow access to file URLs".
+Once, by hand: open the browser's extensions page (chrome://, brave:// or edge://extensions), turn on Developer mode, Load unpacked → `extension/`, and switch on "Allow access to file URLs".
 
 ## Build order
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Installs annot.
-# Usage: ./install.sh host                 native messaging host for Chrome + `annot` CLI on PATH
+# Usage: ./install.sh host                 native messaging host for Chromium browsers + `annot` CLI on PATH
 #        ./install.sh <claude|codex>      agent skill in ~/.claude or ~/.codex
 #        ./install.sh <claude-work|claude-personal|codex-work|codex-personal>   same, for the author's profiles
 set -euo pipefail
@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 REPO="$(pwd)"
 
 install_host() {
-  # Chrome starts the host without the shell's PATH, so pin an absolute node.
+  # The browser starts the host without the shell's PATH, so pin an absolute node.
   # Prefer fnm's default alias (survives version switches), else resolve whatever node is on PATH.
   local node="${ANNOT_NODE:-$HOME/.local/share/fnm/aliases/default/bin/node}"
   [ -x "$node" ] || node="$(realpath "$(command -v node)")"
@@ -22,13 +22,18 @@ install_host() {
     const hex = require("crypto").createHash("sha256").update(Buffer.from(key, "base64")).digest("hex").slice(0, 32);
     console.log([...hex].map((c) => String.fromCharCode(97 + parseInt(c, 16))).join(""));')"
 
-  local dir
+  # Each Chromium browser reads host manifests from its own folder: Chrome's always, the others' when
+  # that browser is installed. (Brave on macOS also reads Chrome's.)
+  local base dir browsers hosts=()
   case "$(uname)" in
-    Darwin) dir="$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts" ;;
-    *)      dir="$HOME/.config/google-chrome/NativeMessagingHosts" ;;
+    Darwin) base="$HOME/Library/Application Support"; browsers=("Google/Chrome" "BraveSoftware/Brave-Browser" "Microsoft Edge" "Chromium") ;;
+    *)      base="$HOME/.config"; browsers=("google-chrome" "BraveSoftware/Brave-Browser" "microsoft-edge" "chromium") ;;
   esac
-  mkdir -p "$dir"
-  cat > "$dir/com.asaeed.annot.json" <<EOF
+  for b in "${browsers[@]}"; do
+    [ "$b" = "${browsers[0]}" ] || [ -d "$base/$b" ] || continue
+    dir="$base/$b/NativeMessagingHosts"
+    mkdir -p "$dir"
+    cat > "$dir/com.asaeed.annot.json" <<EOF
 {
   "name": "com.asaeed.annot",
   "description": "annot mark store",
@@ -37,11 +42,14 @@ install_host() {
   "allowed_origins": ["chrome-extension://$id/"]
 }
 EOF
+    hosts+=("$dir/com.asaeed.annot.json")
+  done
 
   mkdir -p "$HOME/.local/bin"
   ln -sf "$REPO/bin/annot.js" "$HOME/.local/bin/annot"
 
-  echo "Native host: $dir/com.asaeed.annot.json (node: $node, extension id: $id)"
+  echo "Native host (node: $node, extension id: $id):"
+  printf '  %s\n' "${hosts[@]}"
   echo "CLI: $HOME/.local/bin/annot"
   case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo "Note: add ~/.local/bin to PATH" ;; esac
 }

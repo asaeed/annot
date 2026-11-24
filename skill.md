@@ -1,11 +1,11 @@
 ---
 name: annot
-description: Read and resolve the user's annot marks, which are boxes, drawings (circles, arrows, underlines) and notes they placed on web pages, HTML plans and running apps with the annot Chrome extension. Use when the user says "pull my annotations", "check my annotations", "pull annot", "see my marks/notes on the page", or refers to numbered marks on a page.
+description: Read and resolve the user's annot marks, which are boxes, drawings (circles, arrows, underlines) and notes they placed on web pages, HTML plans and running apps with the annot browser extension. Use when the user says "pull my annotations", "check my annotations", "pull annot", "see my marks/notes on the page", or refers to numbered marks on a page.
 ---
 
 # annot
 
-The user marks up pages in Chrome. Each mark is a box or a freehand drawing, usually with a note, saved as JSON under `~/.annotations/`. You read them with the `annot` CLI and reply by resolving them.
+The user marks up pages in their browser. Each mark is a box or a freehand drawing, usually with a note, saved as JSON under `~/.annotations/`. You read them with the `annot` CLI and reply by resolving them.
 
 ## Loop
 

@@ -1,15 +1,10 @@
-<h1>
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/logo-dark.png">
-    <img src="docs/logo-light.png" alt="annot" width="168">
-  </picture>
-</h1>
+<h1><img src="docs/logo.png" alt="annot" width="168"></h1>
 
 The simplest browser annotation tool for human–machine communication.
 
-Draw on any page in Chrome and type a note. Your coding agent reads the note along with exactly what you pointed at, makes the change, and replies under your mark.
+Draw on any page in your browser (Chrome, Brave or Edge) and type a note. Your coding agent reads the note along with exactly what you pointed at, makes the change, and replies under your mark.
 
-![annot on a sample plan: a box with a note, the agent's reply and a follow-up, an underline, and an arrow at a button](docs/screenshot.png)
+![annot on a sample dashboard: a circled number, a box around a chart with the agent's reply and a follow-up, an arrow at a button, a resolved scribble and a note being typed, next to a terminal where the agent works through the marks](docs/screenshot.png)
 
 Say you're reviewing a plan your agent wrote as HTML, or the app it's building. Instead of describing "the date column in the orders table" in chat, you draw a box around it and type. Your agent (Claude Code, Codex, or anything that can run a command) runs `annot pull` and gets:
 - your note;
@@ -25,7 +20,7 @@ It makes the change and answers with `annot resolve`. The answer shows up as a b
 
 ## Install
 
-Requires Chrome and Node 20+ on macOS or Linux.
+Requires Chrome, Brave or Edge, and Node 20+, on macOS or Linux.
 
 ```sh
 git clone https://github.com/asaeed/annot && cd annot
@@ -33,12 +28,12 @@ git clone https://github.com/asaeed/annot && cd annot
 ./install.sh claude   # agent skill for Claude Code; `./install.sh codex` for Codex
 ```
 
-Then, in Chrome:
-1. Open `chrome://extensions` and turn on **Developer mode**.
+Then, in your browser:
+1. Open the extensions page (`chrome://extensions`, `brave://extensions` or `edge://extensions`) and turn on **Developer mode**.
 2. Click **Load unpacked** and pick the `extension/` folder.
 3. To mark up local HTML files, open annot's **Details** and turn on **Allow access to file URLs**.
 
-Chrome starts the native host without your shell's PATH, so `install.sh host` writes in an absolute Node path. It uses fnm's default Node if there is one, otherwise the `node` on your PATH. Set `ANNOT_NODE=/path/to/node` to choose another.
+`install.sh host` registers the native host with each of these browsers that's installed; run it again if you add one later. The browser starts it without your shell's PATH, so it gets an absolute Node path. It uses fnm's default Node if there is one, otherwise the `node` on your PATH. Set `ANNOT_NODE=/path/to/node` to choose another.
 
 ## Use
 
@@ -66,7 +61,9 @@ Drawings are recognised when you save, so the agent gets the right target:
 
 The longest stroke of an arrow is its shaft and the short strokes mark its tip, so the order you draw them in doesn't matter.
 
-The bar filters **Open** and **All**. The toolbar icon turns into a solid orange tile while annotate mode is on, and the number on its corner is how many marks are open on the page. Outside annotate mode, marks are hidden. Coming back to the tab (say, from your terminal) picks up the agent's replies; no need to reopen anything.
+![A sample checkout plan with a box around a table column holding a conversation with the agent, an underlined step, a green circle around "easier to scan", and an arrow at the Proceed to payment button](docs/drawings.png)
+
+The bar in the bottom-right corner filters **Open** and **All**. The toolbar icon turns into an orange tile with a white nib while annotate mode is on, and the number on its corner is how many marks are open on the page. Outside annotate mode, marks are hidden. Coming back to the tab (say, from your terminal) picks up the agent's replies; no need to reopen anything.
 
 If the page layout changes after you mark it, for example because the agent edited the page, each mark moves with the element it was drawn on.
 
@@ -79,7 +76,7 @@ annot pull [url-prefix] [--all]   # open marks as JSON; "new": true means added 
 annot resolve <id> [reply...]     # resolve a mark with a one-line reply
 ```
 
-Here's the arrow from the screenshot as `annot pull` returns it, trimmed:
+Here's the arrow from the checkout sample above as `annot pull` returns it, trimmed:
 
 ```json
 {
@@ -88,9 +85,9 @@ Here's the arrow from the screenshot as `annot pull` returns it, trimmed:
   "url": "http://localhost:5173/plan",
   "shape": "arrow",
   "text": "Rename to Continue",
-  "tip": { "x": 732, "y": 584, "dx": 0.87, "dy": -0.49 },
+  "tip": { "x": 732, "y": 602, "dx": 0.87, "dy": -0.49 },
   "elements": [
-    { "selector": "#next", "tag": "button", "text": "Proceed to payment", "rect": { "x": 660, "y": 539, "w": 180, "h": 41 } }
+    { "selector": "#next", "tag": "button", "text": "Proceed to payment", "rect": { "x": 660, "y": 557, "w": 180, "h": 41 } }
   ],
   "status": "open",
   "thread": [],
@@ -117,11 +114,11 @@ page ── overlay.js (content script; marks drawn in a shadow DOM)
         annot pull / annot resolve (the same script, run as a CLI)
 ```
 
-Each mark is one JSON file, so the extension and the CLI never write the same file at once. Chrome starts the host only for the moment it needs it, so nothing keeps running in the background.
+Each mark is one JSON file, so the extension and the CLI never write the same file at once. The browser starts the host only for the moment it needs it, so nothing keeps running in the background.
 
 ## Limits
 
-- Chrome only.
+- Chromium browsers only: Chrome, Brave and Edge. Firefox runs extensions differently (no background service worker, its own native messaging setup, and signing to install), so it isn't supported yet.
 - Marks follow their element when it moves, but not when it's resized, removed or no longer recognisable. Then they stay where you drew them, and so do marks inside scrolling panels, iframes and canvas apps. The element data still tells the agent what you meant.
 - Marks are stored per host and path, so routes that differ only by `#hash` share marks.
 
@@ -133,6 +130,8 @@ npm test                                         # store and native host tests, 
 ```
 
 During development annot reloads itself. If `manifest.json` or `background.js` has changed on disk, the next ⌥A reloads the extension and then opens annotate mode. `overlay.js` and `shapes.js` are read fresh on every ⌥A anyway. This needs Developer mode on, which it is if you loaded annot unpacked, and it will be removed before a release.
+
+`design/` has the explorations behind the overlay, icon and logo; open its HTML files in a browser.
 
 ## License
 
