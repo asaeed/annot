@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "annot",
+  "version": "0.1.0",
+  "description": "Mark up any page for your coding agent.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoDgTMt8y6yAgfIUCIDZoQRKmgvoldT3yP90/BpZAxtCj7ovB6Crh+QZE79tdm8MKTC4UjU5PpVnV+GaGOEfyiGOCs+Lz++n0RTxwQfwUfDeQmkQxib0mN7eeVrbmoKvmYsYAtVsiVMs6f+BnT/IGF1RLh55A8fsQb1JhcJov7n30X6+y5z+07IpUjw2fz49z6u2qq3iNuJpvo8RDvKY4G5xbgA57uu1vSW+Wx/X0M1z3YvbSkcYrvjMVf6++h/FUlcyG1uYbrIb5JCELLAI/72Cpg9Q+tFoml2jopShNp0GVUDR2sHAMxE2+Mcj7dI/EXuglcN+5/W9XJJAshnd3kQIDAQAB",
+  "permissions": ["nativeMessaging", "scripting", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "annot (⌥A)" },
+  "commands": {
+    "_execute_action": { "suggested_key": { "default": "Alt+A" }, "description": "Toggle annotate mode" }
+  }
+}

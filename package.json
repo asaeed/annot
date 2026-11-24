@@ -1,0 +1,21 @@
+{
+  "name": "annot",
+  "version": "0.1.0",
+  "description": "The simplest browser annotation tool for human-machine communication",
+  "repository": "github:asaeed/annot",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "annot": "bin/annot.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": "^1.65.1"
+  }
+}
