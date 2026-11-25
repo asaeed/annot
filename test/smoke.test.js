@@ -22,7 +22,7 @@ const PAGE = `<!doctype html><title>Plan</title>
   <div style="position:absolute;top:400px;left:0;right:0;height:60px;background:#eee"><button id="unlock" style="position:absolute;right:60px;top:15px">Unlock</button></div>
 </body>`;
 
-test('box, circle, arrow and underline each save the right target and a capture', async (t) => {
+test('a box and each drawing save what is under them and a capture', async (t) => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'annot-smoke-'));
   const store = path.join(tmp, 'store');
   const profile = path.join(tmp, 'profile');
@@ -57,7 +57,7 @@ test('box, circle, arrow and underline each save the right target and a capture'
   // Same as pressing ⌥A: inject the overlay into the active tab.
   await sw.evaluate(async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['shapes.js', 'overlay.js'] });
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['overlay.js'] });
   });
 
   const marks = () =>
@@ -101,9 +101,9 @@ test('box, circle, arrow and underline each save the right target and a capture'
   await page.keyboard.press('Enter');
   await waitFor(2);
 
-  // Three-stroke arrow below and left of Unlock, pointing at it: shaft, then two short head strokes.
+  // Three-stroke arrow below and left of Unlock, ending just short of it: shaft, then two short head strokes.
   const btn = await page.locator('#unlock').boundingBox();
-  const tip = [btn.x + btn.width / 2 - 10, btn.y + btn.height + 25];
+  const tip = [btn.x + btn.width / 2 - 10, btn.y + btn.height + 12];
   await page.keyboard.down('Shift');
   for (const [from, to] of [[[tip[0] - 140, tip[1] + 165], tip], [tip, [tip[0] - 22, tip[1] + 5]], [tip, [tip[0] + 3, tip[1] + 22]]]) {
     await page.mouse.move(...from);
@@ -125,7 +125,6 @@ test('box, circle, arrow and underline each save the right target and a capture'
   await page.mouse.up();
   await page.keyboard.up('Shift');
   const draft = await waitForDraft(true);
-  assert.equal(draft.shape, 'underline');
   assert.equal(draft.text, '');
   assert.match(draft.quote, /recency of last/);
   assert.ok(fs.statSync(draft.capture).size > 1000);
@@ -149,7 +148,6 @@ test('box, circle, arrow and underline each save the right target and a capture'
   const [box, stroke, arrow, underline, blankBox] = saved;
 
   assert.equal(box.kind, 'box');
-  assert.equal(box.shape, 'box');
   assert.equal(box.text, 'make this bold');
   assert.equal(box.url, url);
   assert.equal(box.elements[0].selector, '#title');
@@ -158,23 +156,19 @@ test('box, circle, arrow and underline each save the right target and a capture'
   assert.ok(fs.statSync(path.join(dir, box.capture)).size > 1000, 'viewport capture saved');
 
   assert.equal(stroke.kind, 'stroke');
-  assert.equal(stroke.shape, 'circle');
   assert.equal(stroke.n, 2);
   assert.equal(stroke.text, 'wrong columns');
   assert.ok(stroke.strokes[0].length > 5);
   assert.ok(stroke.elements.some((e) => e.text === 'Last call'));
   assert.ok(!JSON.stringify(stroke).includes('hunter2'), 'typed field values never saved');
 
-  assert.equal(arrow.shape, 'arrow');
-  assert.deepEqual([arrow.elements[0].tag, arrow.elements[0].text], ['button', 'Unlock']);
-  assert.ok(Math.hypot(arrow.tip.x - tip[0], arrow.tip.y - tip[1]) < 4);
+  assert.equal(arrow.strokes.length, 3);
+  assert.ok(arrow.elements.some((e) => e.tag === 'button' && e.text === 'Unlock'), 'what the arrow stops short of');
 
-  assert.equal(underline.shape, 'underline');
   assert.equal(underline.text, '');
   assert.match(underline.quote, /recency of last/);
   assert.ok(fs.statSync(path.join(dir, underline.capture)).size > 1000);
 
-  assert.equal(blankBox.shape, 'box');
   assert.equal(blankBox.text, '');
   assert.equal(blankBox.elements[0].text, 'Unlock');
   assert.ok(fs.statSync(path.join(dir, blankBox.capture)).size > 1000);

@@ -84,7 +84,7 @@ async function overlayOn(tabId) {
 }
 
 const inject = (tabId) =>
-  chrome.scripting.executeScript({ target: { tabId }, files: ['shapes.js', 'overlay.js'] }).catch(() => {});
+  chrome.scripting.executeScript({ target: { tabId }, files: ['overlay.js'] }).catch(() => {});
 
 // ⌥A or the toolbar icon.
 async function toggle(tab) {
@@ -99,7 +99,7 @@ chrome.action.onClicked.addListener(toggle);
 
 // shortcut: dev-only self-reload, remove before wrapping up development. When manifest.json or
 // background.js change on disk, ⌥A reloads the extension and then toggles, so edits apply without
-// a click on chrome://extensions. overlay.js and shapes.js need no reload: each injection reads them fresh.
+// a click on chrome://extensions. overlay.js needs no reload: each injection reads it fresh.
 const OWN = ['manifest.json', 'background.js'];
 const readOwn = async () => (await Promise.all(OWN.map((f) => fetch(f, { cache: 'no-store' }).then((r) => r.text())))).join('\0');
 // storage.session outlives the worker going idle but is cleared by a reload, so it holds the files as loaded.

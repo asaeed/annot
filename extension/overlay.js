@@ -21,20 +21,34 @@
     /* Grows from its normal size, holds, then settles back. */
     @keyframes flash { 30%, 50% { transform: scale(1.8); box-shadow: 0 0 0 2px #fff, 0 0 0 6px rgba(0,0,0,.15); } }
     @media (prefers-reduced-motion: reduce) { .num.flash { animation: none; outline: 2px solid; outline-offset: 2px; } }
-    /* The thread: your note as a bubble in the mark's color, then replies and follow-ups on a rail below it. */
-    .thread { position: absolute; display: flex; flex-direction: column; align-items: flex-start; width: max-content; max-width: 240px;
-      color: #27272a; font: 500 12.5px/1.4 system-ui, sans-serif; }
-    .who { font: 700 10px/1.3 system-ui, sans-serif; color: #18181b; }
-    .you .who { color: color-mix(in srgb, var(--c) 80%, #000); }
-    .who time { margin-left: 5px; color: #a1a1aa; font-weight: 500; }
-    .b { max-width: 200px; white-space: pre-wrap; overflow-wrap: anywhere; }
-    .note .b { max-width: 204px; margin-bottom: 3px; padding: 5px 10px; border-radius: 5px 14px 14px; background: var(--c); color: var(--on);
-      box-shadow: 0 1px 1px rgba(0,0,0,.05), 0 3px 10px -4px rgba(0,0,0,.22); }
-    .resolved .note .b { background: color-mix(in srgb, var(--c) 28%, #fff); color: #3f3f46; }
-    .rail, .state { margin-left: 9px; padding: 3px 0 4px 10px; border-left: 2px solid color-mix(in srgb, var(--c) 45%, #fff); }
-    .resolved .rail, .state { border-left-color: #d4d4d8; }
-    .msg { width: max-content; max-width: 200px; padding: 4px 10px 5px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px #ececf0, 0 3px 10px -5px rgba(0,0,0,.18); }
-    .state { padding: 3px 0 0 12px; color: #16a34a; font-size: 10px; font-weight: 800; }
+    /* The thread, as a frosted capsule: your note, the reply count and a check once resolved. Unfolded, the
+       replies sit on a rail below the note. Dark glass on dark pages. */
+    .layer { --glass: rgba(255,255,255,.76); --ring: rgba(0,0,0,.08); --shadow: 0 10px 28px -12px rgba(0,0,0,.35); --card: rgba(255,255,255,.92);
+      --card-ring: rgba(0,0,0,.07); --fg: #27272a; --fg-strong: #18181b; --muted: #8a8a93; --ok: #15803d; --ok-bg: #dcf5e5; --rail-done: #d4d4d8; }
+    .layer.dark { --glass: rgba(33,37,44,.74); --ring: rgba(255,255,255,.1); --shadow: 0 12px 30px -12px rgba(0,0,0,.75); --card: rgba(255,255,255,.07);
+      --card-ring: rgba(255,255,255,.08); --fg: #d8dbe0; --fg-strong: #f4f5f7; --muted: #9198a1; --ok: #57d98b; --ok-bg: rgba(87,217,139,.15); --rail-done: #545d68; }
+    .thread { position: absolute; width: max-content; max-width: 270px; padding: 2px; border-radius: 13px; color: var(--fg); font: 500 12.5px/1.4 system-ui, sans-serif;
+      background: var(--glass); -webkit-backdrop-filter: blur(14px) saturate(1.6); backdrop-filter: blur(14px) saturate(1.6); box-shadow: 0 0 0 1px var(--ring), var(--shadow); }
+    .row { display: flex; align-items: center; gap: 5px; }
+    .note { max-width: 236px; padding: 3px 9px 4px; border-radius: 11px; background: var(--c); color: var(--on); white-space: pre-wrap; overflow-wrap: anywhere;
+      box-shadow: 0 1px 1px rgba(0,0,0,.06), 0 3px 10px -4px rgba(0,0,0,.3); }
+    .folded .note { max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .meta { display: flex; align-items: center; gap: 3px; padding-right: 2px; color: var(--muted); font: 700 10.5px/1 system-ui, sans-serif; }
+    .ok { display: grid; place-items: center; width: 17px; height: 17px; margin-right: 1px; border-radius: 50%; background: var(--ok-bg); color: var(--ok); }
+    svg.ico { position: static; display: block; width: 11px; height: 11px; }
+    .ico path { stroke: currentColor; stroke-width: 1.9; }
+    .ico.chat path { fill: currentColor; stroke: none; }
+    .replies { display: flow-root; padding: 0 1px; }
+    .replies > :first-child { margin-top: 5px; }
+    .replies > :last-child { margin-bottom: 1px; }
+    .who { font: 700 10px/1.3 system-ui, sans-serif; color: var(--fg-strong); }
+    .you .who { color: color-mix(in srgb, var(--c) 82%, var(--fg-strong)); }
+    .who time { margin-left: 5px; color: var(--muted); font-weight: 500; }
+    .b { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .rail { margin-left: 9px; padding: 3px 0 4px 10px; border-left: 2px solid color-mix(in srgb, var(--c) 55%, transparent); }
+    .resolved .rail { border-left-color: var(--rail-done); }
+    .msg { width: max-content; max-width: 214px; padding: 4px 10px 5px; border-radius: 10px; background: var(--card); box-shadow: 0 0 0 1px var(--card-ring); }
+    .reply { margin-top: 6px; padding: 5px 10px; border-radius: 10px; background: var(--card); box-shadow: 0 0 0 1px var(--card-ring); color: var(--muted); font-size: 12px; cursor: text; }
     .catch { position: fixed; inset: 0; cursor: crosshair; }
     .editor { position: absolute; box-sizing: border-box; padding: 4px 9px; border: 2px solid; border-radius: 12px; background: #fff; color: #18181b;
       font: 600 12px/1.35 system-ui, sans-serif; resize: none; outline: none; overflow: hidden; box-shadow: 0 6px 18px -8px rgba(0,0,0,.3); }
@@ -75,7 +89,9 @@
   let drag = null;
   let pathname = location.pathname;
   let error = '';
-  let hits = []; // clickable areas (boxes and threads) from the last render
+  let hits = []; // clickable areas (boxes, threads and their fold buttons) from the last render
+  const folded = new Set(); // marks whose thread is folded down to the note, for as long as the page is open
+  let folding = null; // the mark whose thread was just folded or unfolded; the next render animates it
   let draftThread = null; // the thread element of the mark being replied to
   let shifts = new Map(); // mark id -> { dx, dy }: how far its element has moved since it was drawn
   let color = DEFAULT_COLOR; // for new marks
@@ -108,6 +124,24 @@
   };
   const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
   // Dark text on light colors, white on the rest.
+  // A 12×12 line icon for the thread capsule. Paint comes from the sheet (.ico rules).
+  const icon = (parent, cls, d) => {
+    const s = document.createElementNS(SVG, 'svg');
+    s.setAttribute('viewBox', '0 0 12 12');
+    s.setAttribute('class', `ico ${cls}`);
+    s.setAttribute('aria-hidden', 'true');
+    s.append(document.createElementNS(SVG, 'path'));
+    s.firstChild.setAttribute('d', d);
+    parent.append(s);
+  };
+  // Threads get dark glass on dark pages, judged by the page's own background (body's, else html's).
+  const darkPage = () => {
+    for (const e of [document.body, document.documentElement]) {
+      const rgba = getComputedStyle(e).backgroundColor.match(/^rgba?\(([^)]+)\)/)?.[1].split(',').map(Number);
+      if (rgba && (rgba[3] ?? 1) > 0.5) return 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2] < 128;
+    }
+    return false;
+  };
   // How long ago an ISO time was, short: now, 5m, 2h, 3d, then the date.
   const ago = (iso) => {
     const s = (Date.now() - Date.parse(iso)) / 1000;
@@ -199,6 +233,7 @@
   function render() {
     shifts = new Map(marks.map((m) => [m.id, shiftOf(m)])); // before the DOM changes, to avoid a layout per mark
     layer.replaceChildren();
+    layer.classList.toggle('dark', darkPage());
     hits = [];
     draftThread = null;
     host.style.setProperty('--cur', color);
@@ -254,24 +289,55 @@
     }
     const thread = m.thread || [];
     if (cls === 'draft' || !(m.text || thread.length)) return null;
-    const t = el('div', `thread ${cls}`, layer);
+    // A thread with replies folds down to one line, except while you're replying to it.
+    const fold = thread.length > 0 && m.id !== draft?.id;
+    const shut = fold && folded.has(m.id);
+    const animating = fold && folding === m.id && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (folding === m.id) folding = null;
+    const t = el('div', `thread ${cls}${shut && !animating ? ' folded' : ''}`, layer);
     t.style.setProperty('--c', c);
     t.style.setProperty('--on', onColor(c));
-    const say = (parent, from, at, text) => {
-      const who = el('div', 'who', parent);
-      who.textContent = from === 'agent' ? 'Agent' : 'You';
-      if (at) el('time', '', who).textContent = ago(at);
-      el('div', 'b', parent).textContent = text;
-    };
-    if (m.text) say(el('div', 'note you', t), 'user', m.created, m.text);
-    for (const msg of thread) say(el('div', 'msg', el('div', `rail ${msg.from === 'agent' ? 'agent' : 'you'}`, t)), msg.from, msg.at, msg.text);
-    if (m.status === 'resolved') el('div', 'state', t).textContent = '✓ Resolved';
+    const row = el('div', 'row', t);
+    if (m.text) el('div', 'note', row).textContent = m.text;
+    if (thread.length) {
+      const meta = el('span', 'meta', row);
+      icon(meta, 'chat', 'M1.8 3.2c0-.8.6-1.4 1.4-1.4h5.6c.8 0 1.4.6 1.4 1.4v3.6c0 .8-.6 1.4-1.4 1.4H5.2L3 10.1V8.2C2.3 8.2 1.8 7.6 1.8 6.8z');
+      meta.append(thread.length);
+    }
+    if (m.status === 'resolved') {
+      const ok = el('span', 'ok', row);
+      ok.title = 'Resolved';
+      icon(ok, 'check', 'M2.6 6.3 5 8.6l4.4-5');
+    }
+    const replies = el('div', 'replies', t);
+    for (const msg of thread) {
+      const card = el('div', 'msg', el('div', `rail ${msg.from === 'agent' ? 'agent' : 'you'}`, replies));
+      const who = el('div', 'who', card);
+      who.textContent = msg.from === 'agent' ? 'Agent' : 'You';
+      if (msg.at) el('time', '', who).textContent = ago(msg.at);
+      el('div', 'b', card).textContent = msg.text;
+    }
+    if (fold) el('div', 'reply', replies).textContent = 'Reply…';
+    if (!thread.length || (shut && !animating)) replies.remove();
     place(t, box.x, box.y + box.h + 6);
-    hits.push({ m, x: t.offsetLeft, y: t.offsetTop, w: t.offsetWidth, h: t.offsetHeight });
+    hits.push({ m, x: t.offsetLeft, y: t.offsetTop, w: t.offsetWidth, h: t.offsetHeight - (shut && animating ? replies.offsetHeight : 0) });
+    // Clicking the note's line folds or unfolds; clicking a reply or Reply… replies.
+    if (fold) hits.push({ m, fold: true, x: t.offsetLeft + row.offsetLeft, y: t.offsetTop + row.offsetTop, w: row.offsetWidth, h: row.offsetHeight });
+    if (animating) {
+      // The capsule grows to show the replies, or shrinks back to one line.
+      const frames = [{ height: '0px', opacity: 0 }, { height: `${replies.offsetHeight}px`, opacity: 1 }];
+      replies.style.overflow = 'hidden';
+      const a = replies.animate(shut ? frames.reverse() : frames, { duration: shut ? 180 : 240, easing: shut ? 'ease-in' : 'cubic-bezier(.2,.8,.2,1)', fill: shut ? 'forwards' : 'none' });
+      a.finished.then(() => {
+        if (!shut) return (replies.style.overflow = '');
+        replies.remove();
+        t.classList.add('folded');
+      }, () => {});
+    }
     return t;
   }
 
-  // The annot logo, as on the toolbar icon: a white nib with a fine slit on the brand tile. Paint goes in
+  // The annot logo on a round tile to match the pill-shaped bar: a white nib with a fine slit. Paint goes in
   // style because the sheet's path rule would override attributes.
   const LOGO = (() => {
     const add = (parent, tag, attrs, style = '') => {
@@ -285,8 +351,8 @@
     s.setAttribute('viewBox', '0 0 16 16');
     s.setAttribute('class', 'logo');
     s.setAttribute('aria-hidden', 'true');
-    add(s, 'rect', { width: 16, height: 16, rx: 4.2 }, `fill:${DEFAULT_COLOR}`);
-    const g = add(s, 'g', { transform: 'translate(8 8) scale(.88) translate(-8 -7.6)' });
+    add(s, 'circle', { cx: 8, cy: 8, r: 8 }, `fill:${DEFAULT_COLOR}`);
+    const g = add(s, 'g', { transform: 'translate(8 8) scale(.8) translate(-8 -7.6)' });
     add(g, 'path', { d: 'M8 1.6l4.8 5-2.7 7H5.9l-2.7-7z' }, 'fill:#fff;stroke:#fff;stroke-width:1;stroke-linejoin:round');
     add(g, 'path', { d: 'M8 2.4v6.2' }, `stroke:${DEFAULT_COLOR};stroke-width:1;stroke-linecap:round`);
     add(g, 'circle', { cx: 8, cy: 8.6, r: 1.6 }, `fill:${DEFAULT_COLOR}`);
@@ -439,7 +505,7 @@
   function openEditor() {
     const b = boxNow(draft);
     const top = draftThread ? draftThread.offsetTop + draftThread.offsetHeight + 4 : b.y + b.h + 6;
-    place(editor, b.x + (draftThread ? 21 : 0), top, 220); // a reply lines up with the thread's rail
+    place(editor, b.x, top, 220);
     editor.placeholder = draft.reply ? 'Reply…' : 'Add an optional note…';
     editor.hidden = tools.hidden = false;
     delBtn.hidden = !draft.id;
@@ -462,7 +528,7 @@
     const inside = (r) => p.x >= r.x - pad && p.x <= r.x + r.w + pad && p.y >= r.y - pad && p.y <= r.y + r.h + pad;
     return hits
       .filter((h) => h.m.id !== 'pending' && inside(h))
-      .sort((a, b) => a.w * a.h - b.w * b.h)[0]?.m;
+      .sort((a, b) => a.w * a.h - b.w * b.h)[0];
   }
 
   // The smallest elements under the box, so the agent can tell what was pointed at.
@@ -526,77 +592,35 @@
     return { ...m.box, x: m.box.x + dx, y: m.box.y + dy };
   };
 
-  // Hit-testing the page (elementFromPoint, caret lookups) must see through the overlay.
-  function throughOverlay(fn) {
-    host.style.pointerEvents = 'none';
-    try {
-      return fn();
-    } finally {
-      host.style.pointerEvents = '';
+  // The page's own words in an area (page coordinates), in reading order: what a drawing circles or
+  // underlines, or what a box holds. Form fields are skipped, so what's typed in them never leaves the page.
+  function wordsIn(b) {
+    const vx = b.x - scrollX;
+    const vy = b.y - scrollY;
+    const hit = (r) => r.width && r.right > vx && r.left < vx + b.w && r.bottom > vy && r.top < vy + b.h;
+    const range = document.createRange();
+    const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const words = [];
+    for (let n; (n = walk.nextNode()); ) {
+      if (n.parentElement.closest('script, style, noscript, textarea, select')) continue;
+      range.selectNodeContents(n);
+      if (!hit(range.getBoundingClientRect())) continue;
+      for (const w of n.data.matchAll(/\S+/g)) {
+        range.setStart(n, w.index);
+        range.setEnd(n, w.index + w[0].length);
+        if (hit(range.getBoundingClientRect())) words.push(w[0]);
+      }
     }
+    return words.join(' ').slice(0, 300) || null;
   }
 
-  const INTERACTIVE = 'a, button, input, select, textarea, label, summary, [role="button"], [role="link"], [role="tab"], [role="menuitem"]';
-
-  // Walk from the arrow's tip in the direction it points; the first control or text-bearing
-  // element hit is the target. Layout containers along the way are skipped.
-  function pointedAt({ tip, dir }) {
-    return throughOverlay(() => {
-      for (let t = 4; t < 400; t += 6) {
-        const x = tip[0] + dir[0] * t - scrollX;
-        const y = tip[1] + dir[1] * t - scrollY;
-        if (x < 0 || y < 0 || x > innerWidth || y > innerHeight) return null;
-        const e = document.elementFromPoint(x, y);
-        if (!e || e === document.body || e === document.documentElement) continue;
-        const control = e.closest(INTERACTIVE);
-        if (control) return control;
-        const r = e.getBoundingClientRect();
-        const hasText = [...e.childNodes].some((n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim());
-        if ((hasText || !e.children.length) && r.width * r.height < innerWidth * innerHeight * 0.25) return e;
-      }
-      return null;
-    });
-  }
-
-  // The words just above an underline, read from the page text.
-  function quoteAbove(b) {
-    const caretAt = (x, y) => {
-      const p = document.caretPositionFromPoint?.(x, y);
-      if (p) return [p.offsetNode, p.offset];
-      const r = document.caretRangeFromPoint?.(x, y);
-      return r && [r.startContainer, r.startOffset];
-    };
-    return throughOverlay(() => {
-      const y = b.y + b.h / 2 - scrollY;
-      for (const up of [8, 14, 20]) {
-        const a = caretAt(b.x - scrollX, y - up);
-        const z = caretAt(b.x + b.w - scrollX, y - up);
-        if (!a || !z) continue;
-        const range = document.createRange();
-        range.setStart(...a);
-        range.setEnd(...z);
-        const text = range.toString().replace(/\s+/g, ' ').trim();
-        if (text) return text.slice(0, 300);
-      }
-      return null;
-    });
-  }
-
-  // Per-shape target: what's inside a box or circle, the text above an underline, what an arrow points at.
+  // What a mark covers. annot doesn't guess what a drawing is (circle, underline, arrow, scribble): the agent
+  // sees that in the capture. It gets the elements and words within 20px of the ink, since ink sits beside
+  // what it marks (under a line of text, just short of a button).
   function targetOf(d) {
-    if (d.kind !== 'stroke') return { shape: 'box', elements: elementsIn(d.box) };
-    const s = annotShapes.classify(d.strokes);
-    if (s.shape === 'underline') {
-      const above = { x: d.box.x, y: d.box.y - 28, w: d.box.w, h: d.box.h + 28 };
-      return { shape: s.shape, quote: quoteAbove(d.box), elements: elementsIn(above) };
-    }
-    if (s.shape === 'arrow') {
-      const hit = pointedAt(s);
-      const near = { x: s.tip[0] - 20, y: s.tip[1] - 20, w: 40, h: 40 };
-      const tip = { x: Math.round(s.tip[0]), y: Math.round(s.tip[1]), dx: +s.dir[0].toFixed(2), dy: +s.dir[1].toFixed(2) };
-      return { shape: s.shape, tip, elements: hit ? [describe(hit)] : elementsIn(near) };
-    }
-    return { shape: s.shape, elements: elementsIn(d.box) };
+    const pad = d.kind === 'stroke' ? 20 : 0;
+    const area = { x: d.box.x - pad, y: d.box.y - pad, w: d.box.w + 2 * pad, h: d.box.h + 2 * pad };
+    return { elements: elementsIn(area), quote: wordsIn(area) };
   }
 
   // Form fields report their placeholder or name, never what's typed in them.
@@ -787,7 +811,10 @@
   });
 
   catcher.addEventListener('pointermove', (e) => {
-    if (!drag) return;
+    if (!drag) {
+      catcher.style.cursor = hitTest(pt(e))?.fold ? 'pointer' : '';
+      return;
+    }
     const p = pt(e);
     if (!drag.moved) {
       if (Math.hypot(p.x - drag.start.x, p.y - drag.start.y) < 4) return;
@@ -814,7 +841,13 @@
     drag = null;
     if (!d) return;
     if (!d.moved) {
-      const hit = hitTest(d.start);
+      const h = hitTest(d.start);
+      if (h?.fold) {
+        if (!folded.delete(h.m.id)) folded.add(h.m.id);
+        folding = h.m.id;
+        return render();
+      }
+      const hit = h?.m;
       if (hit) {
         // Once the agent has answered (or resolved) a mark, typing adds a follow-up instead of editing the note.
         const reply = hit.thread?.length > 0 || hit.status === 'resolved';

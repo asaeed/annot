@@ -8,10 +8,10 @@ In:
 - Toggle annotate mode with ⌥A or the toolbar icon.
 - **Drag** to place a box, then type. Enter saves, Shift+Enter adds a new line, Esc cancels.
 - **Shift+drag** draws freehand (circle, underline, arrow), shown as smooth curves through the recorded points (the saved points are unchanged). If you type right after a stroke, the text attaches to it.
-- Under each mark, its thread: the note as a bubble in the mark's color, then the agent's replies and the user's follow-ups on a rail below it, each labeled You or Agent with how long ago it was sent.
-- Click a mark (or its thread) to edit its note; once the agent has replied, what you type is a follow-up added to the mark's thread. Delete removes the mark.
+- Under each mark, its thread on a frosted capsule (dark glass when the page's background is dark): the note in the mark's color, the reply count, and a check once resolved. Below it, the agent's replies and the user's follow-ups on a rail, each labeled You or Agent with how long ago it was sent, then a **Reply…** row. Clicking the note's line folds the thread to that one line (the note cut short) and back, animated; it stays folded until the page reloads, and opens while you're replying.
+- Click a mark (or a reply, or **Reply…**) to edit its note; once the agent has replied, what you type is a follow-up added to the mark's thread. Delete removes the mark.
 - Each save also stores a screenshot of the viewport with the marks visible.
-- Marks are numbered per page. Corner bar (Bubbles style, kept small): the annot logo at its left end, filter **Open / All**, ‹ › to scroll to the previous/next mark in page order (its number pulses once the scroll stops), a color dot that opens a 2D picker (hue across, light to dark down) plus recently used colors, and **Clear** (delete every mark on the page, after a confirmation).
+- Marks are numbered per page. Corner bar (Bubbles style, kept small): the annot logo on a round tile at its left end, filter **Open / All**, ‹ › to scroll to the previous/next mark in page order (its number pulses once the scroll stops), a color dot that opens a 2D picker (hue across, light to dark down) plus recently used colors, and **Clear** (delete every mark on the page, after a confirmation).
 - ⌘Z: while drawing, removes the last stroke; otherwise undoes the last save, delete or Clear on the page, one step at a time. It's refused if the mark changed since (an agent replied), so a reply is never lost. Typing in a note keeps its own undo.
 - Marks follow their element: each is drawn offset by how far its first recognisable element (`elements`, by selector; tag and text must match unless the selector is an id or test id) has moved since it was saved. The saved mark isn't changed. The overlay rechecks every half second.
 - Coming back to the tab or to Chrome reloads the page's marks (annotate mode on) and updates the toolbar icon's count.
@@ -44,7 +44,6 @@ annot/
   extension/
     manifest.json     MV3; fixed "key" so the extension ID stays stable
     background.js
-    shapes.js         stroke geometry → circle / underline / arrow / drawing (no DOM, unit-tested)
     overlay.js
   bin/
     annot.js          CLI + native host (native mode when argv[2] starts with chrome-extension://)
@@ -52,7 +51,6 @@ annot/
     store.js          read/write marks, pull state
   test/
     store.test.js     node:test
-    shapes.test.js    node:test, including a real hand-drawn arrow (fixtures/arrow.json)
     smoke.test.js     Playwright: load extension, draw box, circle, arrow, underline; assert files on disk
   install.sh          ./install.sh host | <profile>
   skill.md            agent skill
@@ -70,9 +68,9 @@ One file per mark: `~/.annotations/<host>/<id>.json`, with `<id>.png` alongside.
   "url": "http://localhost:5173/projects/42?tab=experts",
   "title": "Project 42 · Experts",
   "kind": "box",
-  "shape": "box",
   "color": "#ff6a3d",
   "text": "this column should be sortable",
+  "quote": "Last call 2 days ago 3 weeks ago",
   "status": "open",
   "thread": [
     { "from": "agent", "text": "Made Last call sortable", "at": "2026-11-23T21:20:02.000Z" },
@@ -91,10 +89,7 @@ One file per mark: `~/.annotations/<host>/<id>.json`, with `<id>.png` alongside.
 ```
 
 - `box` and `strokes` use page coordinates (relative to the document, not the viewport). For a drawing, `kind` is `"stroke"`, `strokes` is `[[[x,y],...], ...]` (consecutive Shift-drags build one drawing, e.g. an arrow's shaft and head) and `box` is their bounding box, so the element lookup handles both kinds the same way.
-- `shape` is worked out on save by `extension/shapes.js` from the strokes alone: `box` (dragged box), `circle` (one stroke whose ends meet), `underline` (one flat, wide stroke), `arrow` (one stroke, or a longest stroke plus shorter strokes; the shorter ones mark which end of the longest is the tip, so drawing order doesn't matter), or `drawing` (anything else). Each shape sets its own target in `elements`:
-  - box, circle, drawing: the elements inside `box`, as below.
-  - underline: the elements in a band just above the line, plus `quote`, the exact text above the line (read with `caretPositionFromPoint`).
-  - arrow: `tip: { x, y, dx, dy }`. From the tip, walk in the direction it points and take the first control (link, button, input…) or text-bearing element hit, skipping layout containers. If nothing is hit, use the elements around the tip.
+- annot doesn't classify drawings. Whether one is a circle, an underline, an arrow or a scribble is left to the agent, which sees it in the capture. A mark's target area is its `box`, padded by 20px for a drawing (ink sits beside what it marks: under a line of text, just short of a button). From that area come `elements` (below) and `quote`: the page's own words in it, in reading order, up to 300 characters (form fields and textareas skipped). Marks saved before this may still carry `shape` and `tip`.
 - `elements` for an area: of all elements whose rectangles overlap it, keep the innermost ones (drop any element that has a descendant also in the set), drop ones more than 4× the area's size unless nothing else is left, and drop duplicates. Rank by overlap and keep 5. Each element's text is trimmed to 200 characters. Selector: a unique `#id`, else `[data-testid]`, else tag plus up to two classes plus `:nth-of-type`, walking up at most 4 levels. Selectors may not be unique; the text and rect tell them apart.
 - `n` is the next number for that page. `id` is the timestamp in base36 plus random characters.
 - `text` is the original note and isn't rewritten once the agent has replied. `thread` holds everything after it, oldest first: agent replies (from `annot resolve`) and the user's follow-ups (a save with `followUp`, which also reopens the mark). Marks saved before threads existed had a single `reply`; they're read as a one-entry thread.

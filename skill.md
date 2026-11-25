@@ -13,9 +13,9 @@ The user marks up pages in their browser. Each mark is a box or a freehand drawi
 2. For each mark, work out what the user means:
    - `text` is the original note. `n` is the number shown on the page ("#3").
    - `thread` is the conversation since, oldest first: `{ from: "agent" | "user", text, at }`. Your earlier replies are there; if the last entry is from the user, that follow-up is the current ask, read in light of the original note and your replies.
-   - `shape` says how to read the mark: `box` or `circle` means what's inside it; `underline` means the text just above it, given exactly in `quote`; `arrow` means what it points at, not what the line crosses (`tip` has the tip position and direction); `drawing` is anything else, so look at the capture.
-   - `elements` are the DOM elements the mark targets, best match first (`selector`, `tag`, `text`, `rect`). For an arrow, the first one is what it points at. Use them to find the code: grep for the text, class names or test ids.
-   - `capture` is the absolute path of a PNG of the viewport with the mark drawn on it. Look at it when `shape` is `drawing`, or when text plus elements leave doubt.
+   - `kind` is `box` (a dragged box: what's inside it) or `stroke` (a freehand drawing). annot doesn't say what a drawing is. Look at the `capture` to see whether it circles something, underlines it, points at it or is something else, and read it the way a person would: an arrow means what it points at, not what its line crosses.
+   - `capture` is the absolute path of a PNG of the viewport with the mark drawn on it. Always look at it for a drawing; for a box, when text plus elements leave doubt.
+   - `elements` are the DOM elements in the mark's area (for a drawing, within 20px of it), best match first (`selector`, `tag`, `text`, `rect`), and `quote` is the page's exact words there. They include neighbors of what was meant, so pick using the capture. Use them to find the code: grep for the text, class names or test ids.
    - `box` is in page coordinates; `viewport` holds the window size and scroll position at the time. Raw stroke points are left out of the pull; `file` is the full mark if you need them.
    - `new: true` means added, edited or followed up since the last pull.
 3. Make the change, or answer the question.

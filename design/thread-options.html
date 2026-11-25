@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>annot thread layouts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ---------- review page ---------- */
+  :root { --ink: #1d1d1f; --muted: #6e6e73; --line: #e5e5ea; --page: #f5f5f7; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.45 Inter, system-ui, sans-serif; }
+  header, main { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+  header { padding-top: 32px; }
+  h1 { font: 800 26px/1.2 Inter, sans-serif; margin: 0 0 6px; letter-spacing: -.01em; }
+  .lede { margin: 0; color: var(--muted); max-width: 820px; }
+  .lede b { color: var(--ink); }
+  .controls { display: flex; align-items: center; gap: 10px; margin: 16px 0 8px; font-size: 12.5px; color: var(--muted); }
+  .seg { display: inline-flex; padding: 2px; border-radius: 999px; background: #e8e8ed; }
+  .seg button { all: unset; padding: 3px 12px; border-radius: 999px; cursor: pointer; color: var(--ink); font: 600 12px Inter, sans-serif; }
+  .seg button.on { background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .seg button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .reset { all: unset; cursor: pointer; color: var(--muted); text-decoration: underline; font-size: 12px; }
+  main { padding-bottom: 60px; }
+  .card { margin-top: 16px; padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: 16px; }
+  .card h2 { font: 700 15px/1.2 Inter, sans-serif; margin: 0; display: flex; gap: 8px; align-items: baseline; }
+  .card h2 .n { font: 700 11px Inter, sans-serif; color: var(--muted); min-width: 18px; }
+  .card p { margin: 3px 0 12px 26px; color: var(--muted); font-size: 12.5px; max-width: 900px; }
+  .frame { overflow-x: auto; border-radius: 12px; }
+
+  /* ---------- the page under the marks: a README, light or dark ---------- */
+  .scene { position: relative; width: 1110px; height: 400px; overflow: hidden; border-radius: 12px; background: var(--bg); color: var(--fg-page);
+    --c: #ff6a3d; }
+  .scene.light { --bg: #fff; --fg-page: #1f2328; --head: #1f2328; --code: #f6f8fa; --rule: #d1d9e0;
+    --glass: rgba(255,255,255,.76); --ring: rgba(0,0,0,.08); --shadow: 0 10px 28px -12px rgba(0,0,0,.35); --card: rgba(255,255,255,.92); --card-ring: rgba(0,0,0,.07);
+    --fg: #27272a; --fg-strong: #18181b; --muted: #8a8a93; --ok: #15803d; --ok-bg: #dcf5e5; --rail-done: #d4d4d8; }
+  .scene.dark { --bg: #22272e; --fg-page: #adbac7; --head: #cdd9e5; --code: #2d333b; --rule: #444c56;
+    --glass: rgba(33,37,44,.74); --ring: rgba(255,255,255,.1); --shadow: 0 12px 30px -12px rgba(0,0,0,.75); --card: rgba(255,255,255,.07); --card-ring: rgba(255,255,255,.08);
+    --fg: #d8dbe0; --fg-strong: #f4f5f7; --muted: #9198a1; --ok: #57d98b; --ok-bg: rgba(87,217,139,.15); --rail-done: #545d68; }
+  .doc { padding: 18px 26px; font: 15px/1.6 -apple-system, system-ui, sans-serif; }
+  .doc h3 { margin: 0 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--rule); color: var(--head); font-size: 22px; font-weight: 600; }
+  .doc p { margin: 0 0 14px; }
+  .doc pre { margin: 0 0 14px; padding: 12px 16px; border-radius: 6px; background: var(--code); font: 13px/1.7 ui-monospace, Menlo, monospace; white-space: pre; }
+
+  /* ---------- marks, as overlay.js draws them ---------- */
+  .box { position: absolute; border: 2px solid var(--c); border-radius: 10px; }
+  .num { position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: var(--c); color: #fff; box-shadow: 0 0 0 2px #fff;
+    font: 800 9.5px/16px system-ui, sans-serif; text-align: center; }
+  .mk.resolved .box, .mk.resolved .num { opacity: .45; }
+
+  /* ---------- shared thread parts ---------- */
+  .th { position: absolute; width: max-content; max-width: 270px; color: var(--fg); font: 500 12.5px/1.4 system-ui, sans-serif; }
+  .glass { background: var(--glass); -webkit-backdrop-filter: blur(14px) saturate(1.6); backdrop-filter: blur(14px) saturate(1.6); box-shadow: 0 0 0 1px var(--ring), var(--shadow); }
+  .note { max-width: 236px; padding: 5px 10px 6px; border-radius: 5px 14px 14px; background: var(--c); color: #fff; white-space: pre-wrap; overflow-wrap: anywhere;
+    box-shadow: 0 1px 1px rgba(0,0,0,.06), 0 3px 10px -4px rgba(0,0,0,.3); transition: filter .15s; }
+  [data-toggle] { cursor: pointer; }
+  [data-toggle]:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+  .has .note:hover { filter: brightness(1.07); }
+  .who { font: 700 10px/1.3 system-ui, sans-serif; color: var(--fg-strong); }
+  .who.you, .you > .msg .who { color: color-mix(in srgb, var(--c) 82%, var(--fg-strong)); }
+  time { margin-left: 5px; color: var(--muted); font-weight: 500; }
+  .rail { margin-left: 9px; padding: 3px 0 4px 10px; border-left: 2px solid color-mix(in srgb, var(--c) 55%, transparent); }
+  .resolved .rail { border-left-color: var(--rail-done); }
+  .msg { width: max-content; max-width: 214px; padding: 4px 10px 5px; border-radius: 10px; background: var(--card); box-shadow: 0 0 0 1px var(--card-ring); }
+  .b { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .chip { display: inline-flex; align-items: center; gap: 3px; padding: 0 7px 0 5px; border-radius: 999px; background: var(--ok-bg); color: var(--ok); font: 700 10px/17px system-ui, sans-serif; white-space: nowrap; }
+  svg { display: block; flex: none; }
+  .ico { width: 11px; height: 11px; }
+  .reply { display: block; width: 100%; min-width: 150px; margin-top: 6px; padding: 5px 10px; border: 0; border-radius: 10px; outline: none;
+    background: var(--card); box-shadow: 0 0 0 1px var(--card-ring); color: var(--fg); font: 500 12px/1.4 system-ui, sans-serif; }
+  .reply::placeholder { color: var(--muted); }
+  .reply:focus { box-shadow: 0 0 0 1.5px var(--c); }
+  /* Unfolding: replies grow from the note; folding takes them back up. */
+  .more, .less { display: grid; transition: grid-template-rows .28s cubic-bezier(.2,.8,.2,1), opacity .22s; }
+  .more { grid-template-rows: 0fr; opacity: 0; }
+  .unfolded .more { grid-template-rows: 1fr; opacity: 1; }
+  .less { grid-template-rows: 1fr; }
+  .unfolded .less { grid-template-rows: 0fr; opacity: 0; }
+  .more > .in, .less > .in { min-height: 0; overflow: hidden; margin: 0 -6px -6px; padding: 0 6px 6px; }
+  @media (prefers-reduced-motion: reduce) { .scene * { transition: none !important; } }
+
+  /* 1 Glass card: one frosted card holds the thread; status top right, the reply count under the note. */
+  .v1 { padding: 7px 9px 9px; border-radius: 14px; }
+  .v1 .hd { display: flex; align-items: center; gap: 12px; margin: 0 1px 5px; }
+  .v1 .hd .chip { margin-left: auto; }
+  .v1 .sum { display: flex; align-items: center; gap: 4px; margin: 6px 1px 0; color: var(--muted); font: 700 10.5px/1.3 system-ui, sans-serif; }
+  .v1 .sum:hover { color: var(--fg-strong); }
+  .v1 .more .in > :first-child { margin-top: 4px; }
+
+  /* 2 Drawer: the note stays a bubble; a frosted drawer under it carries status and count, and opens into the replies. */
+  .v2 .note { position: relative; z-index: 1; }
+  .v2 .t { margin-left: 8px; font-size: 10.5px; opacity: .78; }
+  .v2 .drawer { margin: -4px 0 0 10px; padding: 8px 9px 5px; border-radius: 0 0 12px 12px; }
+  .v2 .tab { display: flex; align-items: center; gap: 5px; color: var(--muted); font: 700 10.5px/17px system-ui, sans-serif; }
+  .v2 .tab:hover { color: var(--fg-strong); }
+  .v2 .tab .chev { width: 10px; height: 10px; margin-left: auto; padding-left: 8px; box-sizing: content-box; transition: transform .25s; }
+  .v2.unfolded .tab .chev { transform: rotate(90deg); }
+  .v2 .more .in > :first-child { margin-top: 3px; }
+
+  /* 3 Stack: a folded thread looks like cards stacked behind the note, with a count and a check on its corners. */
+  .v3 .stack { position: relative; width: max-content; margin-bottom: 12px; transition: margin .28s cubic-bezier(.2,.8,.2,1); }
+  .v3:not(.has) .stack, .v3.unfolded .stack { margin-bottom: 2px; }
+  .v3 .note { position: relative; z-index: 1; }
+  .v3 .t { margin-left: 8px; font-size: 10.5px; opacity: .78; }
+  .v3 .sheet { position: absolute; z-index: 0; inset: 6px 8px -6px; border-radius: 12px; transition: transform .28s cubic-bezier(.2,.8,.2,1), opacity .2s; }
+  .v3 .sheet.s1 { background: color-mix(in srgb, var(--c) 45%, var(--glass)); }
+  .v3 .sheet.s2 { inset: 12px 16px -12px; background: color-mix(in srgb, var(--c) 22%, var(--glass)); }
+  .v3.unfolded .sheet { transform: translateY(-10px); opacity: 0; }
+  .v3 .count { position: absolute; z-index: 2; right: -9px; bottom: -9px; display: flex; align-items: center; gap: 3px; padding: 0 6px; border-radius: 999px;
+    color: var(--fg-strong); font: 700 10px/17px system-ui, sans-serif; transition: opacity .2s; }
+  .v3.unfolded .count { opacity: 0; }
+  .v3 .okb { position: absolute; z-index: 2; right: -7px; top: -7px; display: grid; place-items: center; width: 17px; height: 17px; border-radius: 50%;
+    background: #16a34a; color: #fff; box-shadow: 0 0 0 2px var(--bg); }
+  .v3 .msg, .v3 .reply { background: var(--glass); -webkit-backdrop-filter: blur(14px) saturate(1.6); backdrop-filter: blur(14px) saturate(1.6); box-shadow: 0 0 0 1px var(--ring), 0 6px 16px -8px rgba(0,0,0,.4); }
+  .v3 .reply { margin-left: 21px; width: calc(100% - 21px); }
+  .v3 .reply:focus { box-shadow: 0 0 0 1.5px var(--c); }
+  .v3 .end { margin: 6px 0 0 21px; }
+
+  /* 4 Capsule: folded, the thread is one frosted line: the note, a count and a check. Unfolded, the note wraps and the replies open below. */
+  .v4 { padding: 2px; border-radius: 13px; }
+  .v4 .row { display: flex; align-items: center; gap: 5px; }
+  .v4 .note { padding: 3px 9px 4px; border-radius: 11px; transition: filter .15s; }
+  .v4:not(.unfolded) .note { max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .v4 .meta { display: flex; align-items: center; gap: 3px; padding-right: 2px; color: var(--muted); font: 700 10.5px/1 system-ui, sans-serif; }
+  .v4 .okd { display: grid; place-items: center; width: 17px; height: 17px; margin-right: 3px; border-radius: 50%; background: var(--ok-bg); color: var(--ok); }
+  .v4 .more .in { padding-left: 3px; padding-right: 3px; }
+  .v4 .more .in > :first-child { margin-top: 5px; }
+  .v4 .reply { margin-bottom: 1px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>annot: thread layouts</h1>
+  <p class="lede">Four ways to show the thread under a mark, each on a frosted panel so it reads over any page. <b>Click a note</b> to fold or unfold its thread; folded, you still see how many replies there are and whether it's resolved. <b>Type in Reply</b> and press Enter to add a follow-up (it reopens a resolved mark). In the extension, clicking the box or its number would still edit the note.</p>
+  <div class="controls">Page
+    <span class="seg" id="theme"><button data-t="dark" class="on">Dark</button><button data-t="light">Light</button></span>
+    <button class="reset" id="reset">Reset</button>
+  </div>
+</header>
+<main id="cards"></main>
+<script>
+  const V = [
+    { key: 'v1', name: 'Glass card', idea: 'One frosted card holds the whole thread. Its header has who and when, plus a Resolved tag; folded, a line under your note says how many replies there are and when the last one came in.' },
+    { key: 'v2', name: 'Drawer', idea: 'Your note stays a bubble (its time inside). A small frosted drawer under it carries the status and reply count; click either one and the drawer slides open into the replies.' },
+    { key: 'v3', name: 'Stack', idea: 'Folded, the replies look like cards stacked behind your note, with a reply count on one corner and a green check on the other when resolved. Unfolding deals them out below.' },
+    { key: 'v4', name: 'Capsule', idea: 'Chosen, with a little less padding around the note. Folded, the thread is a single frosted line: your note cut to one line, the reply count and a check. The smallest footprint on the page; unfolded it grows into the full thread.' },
+  ];
+  const THREADS = [
+    { n: 1, c: '#ff6a3d', box: [16, 14, 132, 46], status: 'open', open: true, at: '2h', note: 'Can this be one command?', replies: [
+      { from: 'agent', text: 'Added ./install.sh all for the host and the skill.', at: '1h' },
+      { from: 'you', text: 'Keep host separate, it needs a browser restart', at: '12m' },
+    ] },
+    { n: 2, c: '#7b61ff', box: [392, 62, 268, 28], status: 'resolved', open: false, at: '13m', note: 'This is a test. No action needed.', replies: [
+      { from: 'agent', text: 'Seen, nothing to do.', at: '9m' },
+    ] },
+    { n: 3, c: '#00a6fb', box: [770, 62, 250, 28], status: 'open', open: false, at: 'now', note: 'Say what the native host is the first time it comes up', replies: [] },
+  ];
+  const DOC = `<div class="doc"><h3>Install</h3>
+    <p>Requires Chrome, Brave or Edge, and Node 20+, on macOS or Linux. Clone the repo, register the native host, then install the agent skill for whichever coding agent you use.</p>
+    <pre>git clone https://github.com/asaeed/annot && cd annot
+./install.sh host     # lets the extension save marks; puts the \`annot\` CLI in ~/.local/bin
+./install.sh claude   # agent skill for Claude Code; \`./install.sh codex\` for Codex</pre>
+    <p>Then, in your browser, open the extensions page and turn on Developer mode. Click Load unpacked and pick the extension folder. To mark up local HTML files, open annot's Details and turn on Allow access to file URLs. The host registers itself with every Chromium browser that's installed; run it again if you add one later.</p>
+    <pre>annot pull [url-prefix] [--all]   # open marks as JSON; "new": true means added or changed since the last pull
+annot resolve &lt;id&gt; [reply...]     # resolve a mark with a one-line reply</pre></div>`;
+
+  const esc = (s) => s.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
+  const CHECK = '<svg class="ico" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.6 6.3 5 8.6l4.4-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const CHAT = '<svg class="ico" viewBox="0 0 12 12" aria-hidden="true"><path d="M1.8 3.2c0-.8.6-1.4 1.4-1.4h5.6c.8 0 1.4.6 1.4 1.4v3.6c0 .8-.6 1.4-1.4 1.4H5.2L3 10.1V8.2C2.3 8.2 1.8 7.6 1.8 6.8z" fill="currentColor"/></svg>';
+  const CHEV = '<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="m4.3 2.5 3.5 3.5-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const count = (t) => `${t.replies.length} ${t.replies.length === 1 ? 'reply' : 'replies'}`;
+  const rails = (t) => t.replies.map((m) => `<div class="rail ${m.from}"><div class="msg"><div class="who">${m.from === 'agent' ? 'Agent' : 'You'}<time>${m.at}</time></div><div class="b">${esc(m.text)}</div></div></div>`).join('');
+  const REPLY = '<input class="reply" placeholder="Reply…" aria-label="Reply">';
+  const OK = '<span class="chip">' + CHECK + 'Resolved</span>';
+  // A toggle is a button for keyboards and screen readers; the whole note is the click target.
+  const toggle = (t, has) => (has ? `data-toggle role="button" tabindex="0" aria-expanded="${!!t.open}"` : '');
+
+  const R = {
+    v1: (t, has, done) => `
+      <div class="hd"><span class="who you">You<time>${t.at}</time></span>${done ? OK : ''}</div>
+      <div class="note" ${toggle(t, has)}>${esc(t.note)}</div>
+      ${has ? `<div class="less"><div class="in"><div class="sum" data-toggle>${CHAT}${count(t)}<time>· last ${t.replies.at(-1).at}</time></div></div></div>
+      <div class="more"><div class="in">${rails(t)}${REPLY}</div></div>` : ''}`,
+    v2: (t, has, done) => `
+      <div class="note" ${toggle(t, has)}>${esc(t.note)}<span class="t">${t.at}</span></div>
+      ${has ? `<div class="drawer glass"><div class="tab" data-toggle>${done ? `<span class="chip">${CHECK}Resolved</span>` : ''}${CHAT}${count(t)}${CHEV}</div>
+      <div class="more"><div class="in">${rails(t)}${REPLY}</div></div></div>` : ''}`,
+    v3: (t, has, done) => `
+      <div class="stack" ${toggle(t, has)}>
+        ${has ? '<i class="sheet s2 glass"></i><i class="sheet s1 glass"></i>' : ''}
+        <div class="note">${esc(t.note)}<span class="t">${t.at}</span></div>
+        ${has ? `<span class="count glass">${CHAT}${t.replies.length}</span>` : ''}
+        ${done ? `<span class="okb" title="Resolved">${CHECK}</span>` : ''}
+      </div>
+      ${has ? `<div class="more"><div class="in">${rails(t)}${REPLY}${done ? `<div class="end">${OK}</div>` : ''}</div></div>` : ''}`,
+    v4: (t, has, done) => `
+      <div class="row" ${toggle(t, has)}>
+        <div class="note">${esc(t.note)}</div>
+        ${has ? `<span class="meta">${CHAT}${t.replies.length}</span>` : ''}
+        ${done ? `<span class="okd" title="Resolved">${CHECK}</span>` : ''}
+      </div>
+      ${has ? `<div class="more"><div class="in">${rails(t)}${REPLY}</div></div>` : ''}`,
+  };
+  const GLASS = { v1: true, v4: true }; // versions whose whole thread sits on one panel
+
+  let state;
+  const fresh = () => Object.fromEntries(V.map((v) => [v.key, structuredClone(THREADS)]));
+  function mark(v, t, i) {
+    const [x, y, w, h] = t.box, has = t.replies.length > 0, done = t.status === 'resolved';
+    return `<div class="mk ${t.status}" style="--c:${t.c}" data-v="${v}" data-i="${i}">
+      <div class="box" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"></div>
+      <div class="num" style="left:${x}px;top:${y}px">${t.n}</div>
+      <div class="th ${v}${GLASS[v] ? ' glass' : ''} ${t.status}${has ? ' has' : ''}${has && t.open ? ' unfolded' : ''}" style="left:${x}px;top:${y + h + 6}px">${R[v](t, has, done)}</div>
+    </div>`;
+  }
+  let theme = 'dark';
+  function renderAll() {
+    document.getElementById('cards').innerHTML = V.map((v, i) => `
+      <section class="card"><h2><span class="n">${i + 1}</span>${v.name}</h2><p>${v.idea}</p>
+        <div class="frame"><div class="scene ${theme}">${DOC}${state[v.key].map((t, j) => mark(v.key, t, j)).join('')}</div></div>
+      </section>`).join('');
+  }
+
+  function flip(el) {
+    const mk = el.closest('.mk'), t = state[mk.dataset.v][mk.dataset.i];
+    t.open = !t.open;
+    mk.querySelector('.th').classList.toggle('unfolded', t.open);
+    for (const b of mk.querySelectorAll('[aria-expanded]')) b.setAttribute('aria-expanded', t.open);
+    if (t.open) setTimeout(() => mk.querySelector('.reply')?.focus({ preventScroll: true }), 280);
+  }
+  document.addEventListener('click', (e) => {
+    const tog = e.target.closest('[data-toggle]');
+    if (tog) flip(tog);
+  });
+  document.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-toggle]')) {
+      e.preventDefault();
+      flip(e.target);
+    } else if (e.key === 'Enter' && e.target.matches('.reply') && e.target.value.trim()) {
+      // A follow-up joins the thread and reopens the mark, as in the extension.
+      const mk = e.target.closest('.mk'), t = state[mk.dataset.v][mk.dataset.i];
+      t.replies.push({ from: 'you', text: e.target.value.trim(), at: 'now' });
+      t.status = 'open';
+      t.open = true;
+      mk.outerHTML = mark(mk.dataset.v, t, +mk.dataset.i);
+      document.querySelector(`.mk[data-v="${mk.dataset.v}"][data-i="${mk.dataset.i}"] .reply`).focus({ preventScroll: true });
+    }
+  });
+  document.getElementById('theme').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    theme = b.dataset.t;
+    for (const x of document.querySelectorAll('#theme button')) x.classList.toggle('on', x === b);
+    for (const s of document.querySelectorAll('.scene')) s.className = `scene ${theme}`;
+  });
+  document.getElementById('reset').onclick = () => { state = fresh(); renderAll(); };
+  state = fresh();
+  renderAll();
+</script>
+</body>
+</html>

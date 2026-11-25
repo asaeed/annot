@@ -9,8 +9,8 @@ Draw on any page in your browser (Chrome, Brave or Edge) and type a note. Your c
 Say you're reviewing a plan your agent wrote as HTML, or the app it's building. Instead of describing "the date column in the orders table" in chat, you draw a box around it and type. Your agent (Claude Code, Codex, or anything that can run a command) runs `annot pull` and gets:
 - your note;
 - the DOM elements you marked, with their selectors and text;
-- the exact words you underlined, or what your arrow points at;
-- a screenshot.
+- the exact words under your mark;
+- a screenshot with your mark drawn on it, so it can see whether you circled, underlined or pointed.
 
 It makes the change and answers with `annot resolve`. The answer shows up in a thread under your mark.
 
@@ -45,21 +45,13 @@ Then, in your browser:
 | Enter / Shift+Enter | save / new line |
 | Esc | close the picker or confirmation, cancel the current mark, or leave annotate mode |
 | ⌘Z | remove the last stroke of a drawing you're still making, or undo your last save, delete or Clear on this page (refused if an agent has replied since). In a note with text, it undoes typing |
-| click a mark or its thread | edit its note. Once the agent has replied, type a follow-up instead; the original note stays as written. **delete** removes the mark |
+| click a mark | edit its note. Once the agent has replied, type a follow-up instead (or click **Reply…** under the replies); the original note stays as written. **delete** removes the mark |
+| click a note that has replies | fold its thread to one line, showing the reply count and a check once resolved, or open it again |
 | ‹ › in the bar | scroll to the previous / next mark, in page order |
 | color dot in the bar | pick a color, or one you've used before |
 | Clear in the bar | delete every mark on this page, after a confirmation |
 
-Drawings are recognised when you save, so the agent gets the right target:
-
-| You draw | annot reads it as | Target |
-|---|---|---|
-| a closed loop | circle | the elements inside it |
-| a flat line | underline | the exact words above it |
-| a long stroke, with or without short strokes at one end | arrow | the first element in the direction it points |
-| anything else | drawing | the elements under it, plus the screenshot |
-
-The longest stroke of an arrow is its shaft and the short strokes mark its tip, so the order you draw them in doesn't matter.
+annot doesn't try to work out what you drew. A drawing is saved as its strokes, the elements and words within 20px of it, and the screenshot. Your agent looks at the screenshot to tell a circle from an underline or an arrow, the way a person would. So draw whatever makes your point, in as many strokes as you like.
 
 ![A sample checkout plan with a box around a table column holding a conversation with the agent, an underlined step, a green circle around "easier to scan", and an arrow at the Proceed to payment button](docs/drawings.png)
 
@@ -76,22 +68,22 @@ annot pull [url-prefix] [--all]   # open marks as JSON; "new": true means added 
 annot resolve <id> [reply...]     # resolve a mark with a one-line reply
 ```
 
-Here's the arrow from the checkout sample above as `annot pull` returns it, trimmed:
+Here's the underline from the checkout sample above as `annot pull` returns it, trimmed:
 
 ```json
 {
-  "id": "mwucbvl5qssf",
-  "n": 3,
+  "id": "mww2fkeightj",
+  "n": 2,
   "url": "http://localhost:5173/plan",
-  "shape": "arrow",
-  "text": "Rename to Continue",
-  "tip": { "x": 732, "y": 614, "dx": 0.87, "dy": -0.49 },
+  "kind": "stroke",
+  "text": "Only if they opt in",
+  "quote": "Remember the last card used",
   "elements": [
-    { "selector": "#next", "tag": "button", "text": "Proceed to payment", "rect": { "x": 660, "y": 569, "w": 180, "h": 41 } }
+    { "selector": "#card", "tag": "li", "text": "Remember the last card used", "rect": { "x": 162, "y": 232, "w": 678, "h": 23 } }
   ],
   "status": "open",
   "thread": [],
-  "capture": "~/.annotations/localhost:5173/mwucbvl5qssf.png",
+  "capture": "~/.annotations/localhost:5173/mww2fkeightj.png",
   "new": true
 }
 ```
@@ -129,7 +121,7 @@ npm install && npx playwright install chromium   # only needed for the end-to-en
 npm test                                         # store and native host tests, plus an end-to-end run in Chromium
 ```
 
-During development annot reloads itself. If `manifest.json` or `background.js` has changed on disk, the next ⌥A reloads the extension and then opens annotate mode. `overlay.js` and `shapes.js` are read fresh on every ⌥A anyway. This needs Developer mode on, which it is if you loaded annot unpacked, and it will be removed before a release.
+During development annot reloads itself. If `manifest.json` or `background.js` has changed on disk, the next ⌥A reloads the extension and then opens annotate mode. `overlay.js` is read fresh on every ⌥A anyway. This needs Developer mode on, which it is if you loaded annot unpacked, and it will be removed before a release.
 
 `design/` has the explorations behind the overlay, icon and logo; open its HTML files in a browser.
 
