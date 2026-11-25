@@ -7,8 +7,9 @@ A browser extension (Chrome, Brave, Edge) for marking up any page (agent-generat
 In:
 - Toggle annotate mode with ⌥A or the toolbar icon.
 - **Drag** to place a box, then type. Enter saves, Shift+Enter adds a new line, Esc cancels.
-- **Shift+drag** draws freehand (circle, underline, arrow). If you type right after a stroke, the text attaches to it.
-- Click a mark (or its bubbles) to edit its note; once the agent has replied, what you type is a follow-up added to the mark's thread. Delete removes the mark.
+- **Shift+drag** draws freehand (circle, underline, arrow), shown as smooth curves through the recorded points (the saved points are unchanged). If you type right after a stroke, the text attaches to it.
+- Under each mark, its thread: the note as a bubble in the mark's color, then the agent's replies and the user's follow-ups on a rail below it, each labeled You or Agent with how long ago it was sent.
+- Click a mark (or its thread) to edit its note; once the agent has replied, what you type is a follow-up added to the mark's thread. Delete removes the mark.
 - Each save also stores a screenshot of the viewport with the marks visible.
 - Marks are numbered per page. Corner bar (Bubbles style, kept small): the annot logo at its left end, filter **Open / All**, ‹ › to scroll to the previous/next mark in page order (its number pulses once the scroll stops), a color dot that opens a 2D picker (hue across, light to dark down) plus recently used colors, and **Clear** (delete every mark on the page, after a confirmation).
 - ⌘Z: while drawing, removes the last stroke; otherwise undoes the last save, delete or Clear on the page, one step at a time. It's refused if the mark changed since (an agent replied), so a reply is never lost. Typing in a note keeps its own undo.

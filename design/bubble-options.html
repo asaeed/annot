@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>annot bubble variations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ---------- review page ---------- */
+  :root { --ink: #1d1d1f; --muted: #6e6e73; --line: #e5e5ea; --page: #f5f5f7; --mc: #ff6a3d; --mon: #fff; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.45 Inter, system-ui, sans-serif; }
+  header { max-width: 1180px; margin: 0 auto; padding: 32px 20px 8px; }
+  h1 { font: 800 26px/1.2 Inter, sans-serif; margin: 0 0 6px; letter-spacing: -.01em; }
+  .lede { margin: 0; color: var(--muted); max-width: 800px; }
+  .colors { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 12.5px; color: var(--muted); }
+  .colors button { all: unset; width: 16px; height: 16px; border-radius: 50%; cursor: pointer; }
+  .colors button.sel { box-shadow: 0 0 0 2px var(--page), 0 0 0 3.5px var(--ink); }
+  .colors button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  main { max-width: 1180px; margin: 0 auto; padding: 16px 20px 60px; display: grid; grid-template-columns: repeat(auto-fill, minmax(560px, 1fr)); gap: 16px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .card h2 { font: 700 15px/1.2 Inter, sans-serif; margin: 0; display: flex; gap: 8px; align-items: baseline; }
+  .card h2 .n { font: 700 11px Inter, sans-serif; color: var(--muted); min-width: 18px; }
+  .card p { margin: 3px 0 12px 26px; color: var(--muted); font-size: 12.5px; min-height: 36px; }
+
+  /* ---------- the mock page every card shows ---------- */
+  .scene { position: relative; width: 528px; height: 470px; margin: 0 auto; border-radius: 12px; background: #fff; box-shadow: 0 0 0 1px #ececef;
+    color: #27272a; font: 13px/1.4 system-ui, sans-serif; }
+  .mock > * { position: absolute; }
+  .mock h3 { left: 20px; top: 12px; margin: 0; font: 650 17px/1.3 system-ui, sans-serif; }
+  .mock .btn { left: 360px; top: 50px; width: 100px; height: 30px; display: grid; place-items: center; border: 1px solid #d4d4d8; border-radius: 7px; font-size: 12.5px; font-weight: 500; }
+  .mock table { left: 20px; top: 50px; width: 270px; border-collapse: collapse; font-size: 12.5px; }
+  .mock th, .mock td { height: 28px; padding: 0 10px; text-align: left; border-top: 1px solid #f0f0f1; }
+  .mock th { border-top: 0; background: #fafafa; color: #71717a; font-weight: 600; }
+  .mock td:last-child, .mock th:last-child { text-align: right; }
+  .mock col.o { width: 80px; } .mock col.d { width: 100px; } .mock col.t { width: 90px; }
+
+  /* ---------- overlay: boxes and numbers as in extension/overlay.js ---------- */
+  .box { position: absolute; box-sizing: border-box; border: 2px solid var(--c); border-radius: 10px; }
+  .num { position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; box-shadow: 0 0 0 2px #fff;
+    background: var(--c); color: var(--on); font: 800 9.5px/16px system-ui, sans-serif; text-align: center; }
+  .mark.resolved .box, .mark.resolved .num { opacity: .45; }
+
+  /* ---------- Today: the thread exactly as overlay.js draws it ---------- */
+  .thread { position: absolute; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: max-content; max-width: 240px;
+    font: 600 12px/1.35 system-ui, sans-serif; --ub: var(--c); --ut: var(--on); }
+  .thread.wide { width: 240px; }
+  .resolved .thread { --ub: color-mix(in srgb, var(--c) 28%, #fff); --ut: #3f3f46; }
+  .msg, .body { display: contents; }
+  .av, .who, .more, .head { display: none; }
+  .b { position: relative; max-width: 200px; padding: 3px 9px; border-radius: 11px; box-shadow: 0 2px 6px -3px rgba(0,0,0,.25); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .you .b { background: var(--ub); color: var(--ut); }
+  .you.first .b { border-top-left-radius: 4px; }
+  .you:not(.first) .b { align-self: flex-end; border-bottom-right-radius: 4px; }
+  .agent .b { border-bottom-left-radius: 4px; background: #f1f1f4; color: #18181b; }
+  .state { color: #16a34a; font-size: 10px; font-weight: 800; }
+
+  /* ---------- r: the refined base most variations build on ---------- */
+  .r .thread { gap: 4px; font: 500 12.5px/1.4 system-ui, sans-serif; }
+  .r .thread.wide { width: 244px; }
+  .r .b { max-width: 204px; padding: 5px 10px 5px; border-radius: 14px; box-shadow: 0 1px 1px rgba(0,0,0,.05), 0 3px 10px -4px rgba(0,0,0,.22); }
+  .r .you.first .b { border-top-left-radius: 5px; }
+  .r .you:not(.first) .b { border-bottom-right-radius: 5px; }
+  .r .agent .b { border-bottom-left-radius: 5px; background: #fff; color: #27272a; box-shadow: 0 0 0 1px #e6e6ea, 0 3px 10px -4px rgba(0,0,0,.16); }
+  .r .state { display: inline-flex; align-items: center; gap: 3px; margin-top: 1px; padding: 1px 8px 1px 6px; border-radius: 999px;
+    background: #e8f8ee; color: #15803d; font: 700 10.5px/1.5 system-ui, sans-serif; }
+
+  /* 2 Pointer: the first note points up at the mark it belongs to. */
+  .v2 .thread { margin-top: 6px; }
+  .v2 .you.first .b { border-top-left-radius: 14px; }
+  .v2 .you.first .b::before { content: ''; position: absolute; left: 11px; top: -7px; border: 7px solid transparent; border-top: 0; border-bottom-color: var(--ub); }
+
+  /* 3 Agent badge: a small terminal badge beside every agent reply. */
+  .v3 .agent { display: flex; align-items: flex-end; gap: 5px; }
+  .v3 .av { display: grid; place-items: center; flex: none; width: 18px; height: 18px; margin-bottom: 2px; border-radius: 50%; background: #1d1d1f; color: #fff; }
+  .v3 .av svg { width: 12px; height: 12px; }
+  .v3 .resolved .av { background: #16a34a; }
+  .v3 .state { margin-left: 23px; }
+
+  /* 4 Thread rail: the note is the bubble; replies hang off a rail in the mark's color, labeled and timed. */
+  .v4 .thread { gap: 0; font: 500 12.5px/1.4 system-ui, sans-serif; }
+  .v4 .thread.wide { width: max-content; }
+  .v4 .b { padding: 5px 10px; border-radius: 14px; box-shadow: 0 1px 1px rgba(0,0,0,.05), 0 3px 10px -4px rgba(0,0,0,.22); }
+  .v4 .you.first .b { margin-bottom: 3px; border-top-left-radius: 5px; }
+  .v4 .msg:not(.first) { display: block; margin-left: 9px; padding: 3px 0 4px 10px; border-left: 2px solid color-mix(in srgb, var(--c) 45%, #fff); }
+  .v4 .msg:not(.first) .body { display: block; width: max-content; max-width: 200px; padding: 4px 10px 5px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px #ececf0, 0 3px 10px -5px rgba(0,0,0,.18); }
+  .v4 .msg:not(.first) .b { all: unset; display: block; white-space: pre-wrap; color: #27272a; }
+  .v4 .who { display: block; font: 700 10px/1.3 system-ui, sans-serif; color: #18181b; }
+  .v4 .you .who { color: color-mix(in srgb, var(--c) 80%, #000); }
+  .v4 time { margin-left: 5px; color: #a1a1aa; font-weight: 500; }
+  .v4 .resolved .msg:not(.first) { border-left-color: #d4d4d8; }
+  .v4 .state { margin: 0 0 0 9px; padding: 3px 0 0 12px; border-left: 2px solid #d4d4d8; }
+
+  /* 5 Comment card: one card per mark, with its status on top. */
+  .v5 .thread { gap: 0; width: 256px; padding: 3px 0 2px; border-radius: 12px; background: #fff;
+    box-shadow: inset 0 3px 0 var(--c), 0 0 0 1px #e6e6ea, 0 8px 20px -10px rgba(0,0,0,.3); font: 500 12px/1.4 system-ui, sans-serif; }
+  .v5 .resolved .thread { width: max-content; max-width: 168px; box-shadow: inset 0 3px 0 color-mix(in srgb, var(--c) 40%, #fff), 0 0 0 1px #e6e6ea, 0 8px 20px -10px rgba(0,0,0,.3); }
+  .v5 .head { display: flex; align-items: center; gap: 6px; padding: 7px 10px 2px; color: #a1a1aa; font: 600 10.5px/1.4 system-ui, sans-serif; }
+  .v5 .chip { padding: 0 7px; border-radius: 999px; background: color-mix(in srgb, var(--c) 14%, #fff); color: color-mix(in srgb, var(--c) 75%, #000); font-weight: 700; }
+  .v5 .chip.ok { background: #e8f8ee; color: #15803d; }
+  .v5 .msg { display: block; align-self: stretch; padding: 6px 10px; }
+  .v5 .msg + .msg { border-top: 1px solid #f1f1f3; }
+  .v5 .body { display: block; }
+  .v5 .who { display: block; color: #18181b; font: 700 10.5px/1.4 system-ui, sans-serif; }
+  .v5 .you .who { color: color-mix(in srgb, var(--c) 80%, #000); }
+  .v5 time { margin-left: 5px; color: #a1a1aa; font-weight: 500; }
+  .v5 .b { all: unset; display: block; white-space: pre-wrap; color: #3f3f46; }
+  .v5 .you.first .b { color: #18181b; font-weight: 600; font-size: 12.5px; }
+  .v5 .state { display: none; }
+
+  /* 6 Tinted: agent replies take a wash of the mark's color, so each thread reads as one piece. */
+  .v6 .agent .b { background: color-mix(in srgb, var(--c) 10%, #fff); color: #27272a;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 24%, #fff), 0 3px 10px -4px rgba(0,0,0,.14); }
+  .v6 .resolved .agent .b { background: #f6f6f7; box-shadow: 0 0 0 1px #e6e6ea; }
+
+  /* 7 Outline: your notes are outlined like the box; the agent's replies are solid ink, so new answers stand out. */
+  .v7 .you .b { background: #fff; color: #18181b; box-shadow: inset 0 0 0 1.5px var(--c), 0 3px 10px -4px rgba(0,0,0,.18); }
+  .v7 .agent .b { background: #1d1d1f; color: #f4f4f5; box-shadow: 0 3px 10px -4px rgba(0,0,0,.35); }
+  .v7 .resolved .you .b { color: #52525b; box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--c) 40%, #fff); }
+  .v7 .resolved .agent .b { background: #52525b; }
+
+  /* 8 Latest only: the note and the last exchange; older messages fold into a pill. */
+  .v8 .old { display: none; }
+  .v8 .expanded .old { display: contents; }
+  .v8 .more { all: unset; display: block; margin: 0 0 0 10px; padding: 0 8px; border-radius: 999px; background: #fff; color: #71717a; cursor: pointer;
+    box-shadow: 0 0 0 1px #e4e4e7; font: 700 10px/17px system-ui, sans-serif; }
+  .v8 .more:hover { color: #18181b; }
+  .v8 .more:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>annot: conversation bubbles</h1>
+  <p class="lede">The thread under a mark, eight ways. Every card shows the same page: <b>#2</b> is open, with two rounds of back and forth and a new follow-up from you; <b>#3</b> is resolved. <b>Today</b> was the overlay before; <b>#4 Thread rail is the one chosen</b> and is what the overlay draws now. 1 refines it (lighter type, softer shadows, white agent replies, a resolved chip) and most of the others build on 1. Nothing here changes what the agent sees; it's all drawing.</p>
+  <div class="colors" id="colors">Color of #2:</div>
+</header>
+<main id="cards"></main>
+<script>
+  const V = [
+    { key: '', name: 'Today', n: 'now', idea: 'As overlay.js draws it: heavy 600 type, gray agent replies, a green "Resolved" line.' },
+    { key: 'r', name: 'Refined', idea: 'Same layout. Regular-weight type, a bit more padding and rounder corners, a softer shadow, white agent replies with a hairline, and a resolved chip.' },
+    { key: 'r v2', name: 'Pointer', idea: 'The first note gets a small pointer up at its mark, so it reads as attached to it rather than floating near it.' },
+    { key: 'r v3', name: 'Agent badge', idea: 'A small terminal badge beside each agent reply, so who said what never depends on left/right alignment. Turns green once resolved.' },
+    { key: 'v4', name: 'Thread rail', idea: 'Chosen. Only your note is a bubble. Replies hang off a rail in the mark\'s color, each labeled You or Agent with its time, like a chat thread.' },
+    { key: 'v5', name: 'Comment card', idea: 'One card per mark with a colored top edge, a status chip and a message count; each message labeled and timed. Most document-like.' },
+    { key: 'r v6', name: 'Tinted', idea: 'Agent replies take a light wash of the mark\'s color, so with several threads near each other you can tell which belongs to which.' },
+    { key: 'r v7', name: 'Outline', idea: 'Flips the emphasis: your notes are outlined like the box, and the agent\'s replies are solid ink, so new answers are what you see first.' },
+    { key: 'r v8', name: 'Latest only', idea: 'Shows your note and the last exchange; older messages fold into a pill (click it). Keeps long threads from covering the page.' },
+  ];
+  // Marks: page coordinates of the box, then the conversation. Times are what each message's `at` would show.
+  const MARKS = [
+    { n: 2, box: [94, 44, 112, 124], c: 'var(--mc)', on: 'var(--mon)', status: 'open', msgs: [
+      ['you', 'Show Nov 24, not 2026-11-24', '2h'],
+      ['agent', 'Switched the Date column to month and day.', '2h'],
+      ['you', 'Keep the year for older orders', '1h'],
+      ['agent', 'Done: orders from past years show the year too.', '58m'],
+      ['you', 'And right-align it like Total', 'now'],
+    ] },
+    { n: 3, box: [355, 45, 110, 40], c: '#7b61ff', on: '#fff', status: 'resolved', msgs: [
+      ['you', 'Call it Download CSV', '3h'],
+      ['agent', 'Done, in the toolbar.', '3h'],
+    ] },
+  ];
+  const AV = '<i class="av"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 4.5 7 8l-3.5 3.5M8.5 12h4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></i>';
+  const MOCK = `<div class="mock"><h3>Orders</h3><div class="btn">Export CSV</div>
+    <table><colgroup><col class="o"><col class="d"><col class="t"></colgroup>
+    <tr><th>Order</th><th>Date</th><th>Total</th></tr>
+    <tr><td>#1042</td><td>2026-11-24</td><td>$184.00</td></tr>
+    <tr><td>#1041</td><td>2026-11-23</td><td>$92.50</td></tr>
+    <tr><td>#1040</td><td>2025-12-30</td><td>$1,240.00</td></tr></table></div>`;
+
+  function mark(m) {
+    const [x, y, w, h] = m.box, last = m.msgs.length - 1;
+    const old = (i) => i > 0 && i < last - 1; // all but the note and the last exchange
+    const nOld = m.msgs.filter((_, i) => old(i)).length;
+    const msgs = m.msgs.map(([who, text, at], i) =>
+      (i === 1 && nOld ? `<button class="more" aria-expanded="false">${nOld} earlier</button>` : '') +
+      `<div class="msg ${who}${i ? '' : ' first'}${old(i) ? ' old' : ''}">${who === 'agent' ? AV : ''}<div class="body">` +
+      `<span class="who">${who === 'agent' ? 'Agent' : 'You'}<time>${at}</time></span><div class="b">${text}</div></div></div>`).join('');
+    const done = m.status === 'resolved';
+    return `<div class="mark ${m.status}" style="--c:${m.c};--on:${m.on}">
+      <div class="box" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px"></div>
+      <div class="num" style="left:${x}px;top:${y}px">${m.n}</div>
+      <div class="thread${m.msgs.some(([who], i) => i && who === 'you') ? ' wide' : ''}" style="left:${x}px;top:${y + h + 6}px">
+        <div class="head"><span class="chip${done ? ' ok' : ''}">${done ? '✓ Resolved' : 'Open'}</span>${m.msgs.length} messages</div>
+        ${msgs}${done ? '<div class="state">✓ Resolved</div>' : ''}
+      </div></div>`;
+  }
+
+  document.getElementById('cards').innerHTML = V.map((v, i) => `
+    <section class="card">
+      <h2><span class="n">${v.n ?? i}</span>${v.name}</h2>
+      <p>${v.idea}</p>
+      <div class="scene ${v.key}">${MOCK}${MARKS.map(mark).join('')}</div>
+    </section>`).join('');
+
+  document.addEventListener('click', (e) => {
+    const more = e.target.closest('.more');
+    if (!more) return;
+    const open = more.closest('.thread').classList.toggle('expanded');
+    more.setAttribute('aria-expanded', open);
+    more.textContent = open ? 'Show less' : `${more.closest('.thread').querySelectorAll('.old').length} earlier`;
+  });
+
+  // The overlay's palette, plus a light yellow to check dark text on light colors (same rule as onColor in overlay.js).
+  const onColor = (hex) => { const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)); return .299 * r + .587 * g + .114 * b > 170 ? '#1a1a1a' : '#fff'; };
+  const colors = document.getElementById('colors');
+  for (const hex of ['#ff6a3d', '#ff3d77', '#7b61ff', '#00a6fb', '#06d6a0', '#2b2d42', '#ffd60a']) {
+    const b = document.createElement('button');
+    b.style.background = hex;
+    b.title = b.ariaLabel = hex;
+    b.className = hex === '#ff6a3d' ? 'sel' : '';
+    b.onclick = () => {
+      document.documentElement.style.setProperty('--mc', hex);
+      document.documentElement.style.setProperty('--mon', onColor(hex));
+      for (const s of colors.querySelectorAll('button')) s.className = s === b ? 'sel' : '';
+    };
+    colors.append(b);
+  }
+</script>
+</body>
+</html>

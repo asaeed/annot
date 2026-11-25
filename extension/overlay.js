@@ -21,16 +21,20 @@
     /* Grows from its normal size, holds, then settles back. */
     @keyframes flash { 30%, 50% { transform: scale(1.8); box-shadow: 0 0 0 2px #fff, 0 0 0 6px rgba(0,0,0,.15); } }
     @media (prefers-reduced-motion: reduce) { .num.flash { animation: none; outline: 2px solid; outline-offset: 2px; } }
-    .thread { position: absolute; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; width: max-content; max-width: 240px;
-      font: 600 12px/1.35 system-ui, sans-serif; }
-    .thread.wide { width: 240px; }
-    .b { max-width: 200px; padding: 3px 9px; border-radius: 11px; box-shadow: 0 2px 6px -3px rgba(0,0,0,.25); white-space: pre-wrap; overflow-wrap: anywhere; }
-    .you { background: var(--c); color: var(--on); }
-    .you.first { border-top-left-radius: 4px; }
-    .you:not(.first) { align-self: flex-end; border-bottom-right-radius: 4px; }
-    .agent { border-bottom-left-radius: 4px; background: #f1f1f4; color: #18181b; }
-    .resolved .you { background: color-mix(in srgb, var(--c) 28%, #fff); color: #3f3f46; }
-    .state { color: #16a34a; font-size: 10px; font-weight: 800; }
+    /* The thread: your note as a bubble in the mark's color, then replies and follow-ups on a rail below it. */
+    .thread { position: absolute; display: flex; flex-direction: column; align-items: flex-start; width: max-content; max-width: 240px;
+      color: #27272a; font: 500 12.5px/1.4 system-ui, sans-serif; }
+    .who { font: 700 10px/1.3 system-ui, sans-serif; color: #18181b; }
+    .you .who { color: color-mix(in srgb, var(--c) 80%, #000); }
+    .who time { margin-left: 5px; color: #a1a1aa; font-weight: 500; }
+    .b { max-width: 200px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .note .b { max-width: 204px; margin-bottom: 3px; padding: 5px 10px; border-radius: 5px 14px 14px; background: var(--c); color: var(--on);
+      box-shadow: 0 1px 1px rgba(0,0,0,.05), 0 3px 10px -4px rgba(0,0,0,.22); }
+    .resolved .note .b { background: color-mix(in srgb, var(--c) 28%, #fff); color: #3f3f46; }
+    .rail, .state { margin-left: 9px; padding: 3px 0 4px 10px; border-left: 2px solid color-mix(in srgb, var(--c) 45%, #fff); }
+    .resolved .rail, .state { border-left-color: #d4d4d8; }
+    .msg { width: max-content; max-width: 200px; padding: 4px 10px 5px; border-radius: 10px; background: #fff; box-shadow: 0 0 0 1px #ececf0, 0 3px 10px -5px rgba(0,0,0,.18); }
+    .state { padding: 3px 0 0 12px; color: #16a34a; font-size: 10px; font-weight: 800; }
     .catch { position: fixed; inset: 0; cursor: crosshair; }
     .editor { position: absolute; box-sizing: border-box; padding: 4px 9px; border: 2px solid; border-radius: 12px; background: #fff; color: #18181b;
       font: 600 12px/1.35 system-ui, sans-serif; resize: none; outline: none; overflow: hidden; box-shadow: 0 6px 18px -8px rgba(0,0,0,.3); }
@@ -104,6 +108,16 @@
   };
   const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
   // Dark text on light colors, white on the rest.
+  // How long ago an ISO time was, short: now, 5m, 2h, 3d, then the date.
+  const ago = (iso) => {
+    const s = (Date.now() - Date.parse(iso)) / 1000;
+    if (!(s >= 0)) return '';
+    if (s < 60) return 'now';
+    if (s < 3600) return `${Math.floor(s / 60)}m`;
+    if (s < 86400) return `${Math.floor(s / 3600)}h`;
+    if (s < 7 * 86400) return `${Math.floor(s / 86400)}d`;
+    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  };
   const onColor = (hex) => {
     const [r, g, b] = rgb(hex);
     return 0.299 * r + 0.587 * g + 0.114 * b > 170 ? '#1a1a1a' : '#fff';
@@ -199,6 +213,18 @@
     renderPicker();
   }
 
+  // A stroke as a smooth curve: points closer than 4px are skipped, then a curve runs through the midpoints,
+  // so mouse jitter and whole-pixel points don't show as a shaky line. The saved points are unchanged.
+  function curve(points, dx, dy) {
+    const pts = [points[0]];
+    for (const p of points.slice(1)) if (Math.hypot(p[0] - pts.at(-1)[0], p[1] - pts.at(-1)[1]) >= 4) pts.push(p);
+    if (points.length > 1) pts[pts.length > 1 ? pts.length - 1 : 1] = points.at(-1); // always end where the pen lifted
+    const at = ([x, y]) => `${x + dx} ${y + dy}`;
+    let d = `M${at(pts[0])}`;
+    for (let i = 1; i < pts.length - 1; i++) d += ` Q${at(pts[i])} ${at([(pts[i][0] + pts[i + 1][0]) / 2, (pts[i][1] + pts[i + 1][1]) / 2])}`;
+    return pts.length > 1 ? `${d} L${at(pts.at(-1))}` : d;
+  }
+
   // Draws one mark and its conversation, moved along with its element; returns the conversation element, if any.
   function drawMark(svg, m, cls) {
     const c = m.color || DEFAULT_COLOR;
@@ -206,7 +232,7 @@
     if (m.kind === 'stroke') {
       for (const s of m.strokes) {
         const p = document.createElementNS(SVG, 'path');
-        p.setAttribute('d', `M${s.map(([x, y]) => `${x + dx} ${y + dy}`).join(' L')}`);
+        p.setAttribute('d', curve(s, dx, dy));
         p.style.stroke = c;
         if (cls) p.classList.add(cls);
         svg.append(p);
@@ -231,9 +257,14 @@
     const t = el('div', `thread ${cls}`, layer);
     t.style.setProperty('--c', c);
     t.style.setProperty('--on', onColor(c));
-    if (m.text) el('div', 'b you first', t).textContent = m.text;
-    for (const msg of thread) el('div', `b ${msg.from === 'agent' ? 'agent' : 'you'}`, t).textContent = msg.text;
-    if (thread.some((msg) => msg.from === 'user')) t.classList.add('wide');
+    const say = (parent, from, at, text) => {
+      const who = el('div', 'who', parent);
+      who.textContent = from === 'agent' ? 'Agent' : 'You';
+      if (at) el('time', '', who).textContent = ago(at);
+      el('div', 'b', parent).textContent = text;
+    };
+    if (m.text) say(el('div', 'note you', t), 'user', m.created, m.text);
+    for (const msg of thread) say(el('div', 'msg', el('div', `rail ${msg.from === 'agent' ? 'agent' : 'you'}`, t)), msg.from, msg.at, msg.text);
     if (m.status === 'resolved') el('div', 'state', t).textContent = '✓ Resolved';
     place(t, box.x, box.y + box.h + 6);
     hits.push({ m, x: t.offsetLeft, y: t.offsetTop, w: t.offsetWidth, h: t.offsetHeight });
@@ -408,7 +439,7 @@
   function openEditor() {
     const b = boxNow(draft);
     const top = draftThread ? draftThread.offsetTop + draftThread.offsetHeight + 4 : b.y + b.h + 6;
-    place(editor, b.x, top, 220);
+    place(editor, b.x + (draftThread ? 21 : 0), top, 220); // a reply lines up with the thread's rail
     editor.placeholder = draft.reply ? 'Reply…' : 'Add an optional note…';
     editor.hidden = tools.hidden = false;
     delBtn.hidden = !draft.id;

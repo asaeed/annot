@@ -19,6 +19,6 @@ The user marks up pages in their browser. Each mark is a box or a freehand drawi
    - `box` is in page coordinates; `viewport` holds the window size and scroll position at the time. Raw stroke points are left out of the pull; `file` is the full mark if you need them.
    - `new: true` means added, edited or followed up since the last pull.
 3. Make the change, or answer the question.
-4. `annot resolve <id> "<one line: what you did or the answer>"`. The reply is added to the thread and shows as a bubble under the mark. Resolve only marks you addressed; leave the rest open and say why in chat.
+4. `annot resolve <id> "<one line: what you did or the answer>"`. The reply is added to the thread and shows under the mark. Resolve only marks you addressed; leave the rest open and say why in chat.
 
 `annot pull --all` includes resolved marks. `annot --help` shows usage. If `annot resolve` is refused by a sandbox, ask the user to approve it; `~/.annotations` needs to be writable.

@@ -4,7 +4,7 @@ The simplest browser annotation tool for human–machine communication.
 
 Draw on any page in your browser (Chrome, Brave or Edge) and type a note. Your coding agent reads the note along with exactly what you pointed at, makes the change, and replies under your mark.
 
-![annot on a sample dashboard: a circled number, a box around a chart with the agent's reply and a follow-up, an arrow at a button, a resolved scribble and a note being typed, next to a terminal where the agent works through the marks](docs/screenshot.png)
+![annot on a sample dashboard: a circled number, a box around a chart with the agent's reply and a follow-up, an arrow at a button, a resolved scribble and a note being typed, next to a terminal where the agent works through the marks](docs/hero.png)
 
 Say you're reviewing a plan your agent wrote as HTML, or the app it's building. Instead of describing "the date column in the orders table" in chat, you draw a box around it and type. Your agent (Claude Code, Codex, or anything that can run a command) runs `annot pull` and gets:
 - your note;
@@ -12,7 +12,7 @@ Say you're reviewing a plan your agent wrote as HTML, or the app it's building. 
 - the exact words you underlined, or what your arrow points at;
 - a screenshot.
 
-It makes the change and answers with `annot resolve`. The answer shows up as a bubble under your mark.
+It makes the change and answers with `annot resolve`. The answer shows up in a thread under your mark.
 
 - **Nothing to learn:** ⌥A, drag, type, Enter. Shift-drag to circle, underline or draw an arrow.
 - **Any page:** local HTML files, localhost, and hosted apps you're signed into.
@@ -45,7 +45,7 @@ Then, in your browser:
 | Enter / Shift+Enter | save / new line |
 | Esc | close the picker or confirmation, cancel the current mark, or leave annotate mode |
 | ⌘Z | remove the last stroke of a drawing you're still making, or undo your last save, delete or Clear on this page (refused if an agent has replied since). In a note with text, it undoes typing |
-| click a mark or its bubbles | edit its note. Once the agent has replied, type a follow-up instead; the original note stays as written. **delete** removes the mark |
+| click a mark or its thread | edit its note. Once the agent has replied, type a follow-up instead; the original note stays as written. **delete** removes the mark |
 | ‹ › in the bar | scroll to the previous / next mark, in page order |
 | color dot in the bar | pick a color, or one you've used before |
 | Clear in the bar | delete every mark on this page, after a confirmation |
@@ -85,9 +85,9 @@ Here's the arrow from the checkout sample above as `annot pull` returns it, trim
   "url": "http://localhost:5173/plan",
   "shape": "arrow",
   "text": "Rename to Continue",
-  "tip": { "x": 732, "y": 602, "dx": 0.87, "dy": -0.49 },
+  "tip": { "x": 732, "y": 614, "dx": 0.87, "dy": -0.49 },
   "elements": [
-    { "selector": "#next", "tag": "button", "text": "Proceed to payment", "rect": { "x": 660, "y": 557, "w": 180, "h": 41 } }
+    { "selector": "#next", "tag": "button", "text": "Proceed to payment", "rect": { "x": 660, "y": 569, "w": 180, "h": 41 } }
   ],
   "status": "open",
   "thread": [],
